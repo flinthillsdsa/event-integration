@@ -282,7 +282,8 @@ def home():
         'endpoints': {
             'health': '/health',
             'sync_now': '/sync',
-            'status': '/status'
+            'status': '/status',
+            'debug': '/debug/action-network'
         }
     })
 
@@ -353,6 +354,31 @@ def sync_status():
         'next_sync': 'Within 30 minutes'
     })
 
+@app.route('/debug/action-network', methods=['GET'])
+def debug_action_network():
+    """
+    Debug endpoint to see raw Action Network response
+    """
+    try:
+        url = f"{sync_service.action_network_base_url}/events"
+        params = {
+            'limit': 10,
+            'filter': f'organization_slug eq "{ACTION_NETWORK_ORG}"'
+        }
+        
+        response = requests.get(url, headers=sync_service.action_network_headers, params=params)
+        
+        return jsonify({
+            'status_code': response.status_code,
+            'url': url,
+            'params': params,
+            'response': response.json() if response.status_code == 200 else response.text,
+            'organization_slug': ACTION_NETWORK_ORG
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     
@@ -370,5 +396,6 @@ if __name__ == '__main__':
     logger.info(f"📡 Manual sync endpoint: /sync")
     logger.info(f"❤️  Health check: /health")
     logger.info(f"📊 Status endpoint: /status")
+    logger.info(f"🐛 Debug endpoint: /debug/action-network")
     
     app.run(host='0.0.0.0', port=port, debug=False)
