@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Action Network to TeamUp Integration Service
-Polls Action Network for events and creates them in TeamUp Calendar
-Version 2.1 - Force Railway Update
+Full two-way sync with event updates and cancellation handling
+Version 3.0 - Two-Way Sync
 """
 
 from flask import Flask, request, jsonify
@@ -26,8 +26,9 @@ TEAMUP_CALENDAR_KEY = os.environ.get('TEAMUP_CALENDAR_KEY')
 ACTION_NETWORK_API_KEY = os.environ.get('ACTION_NETWORK_API_KEY')
 ACTION_NETWORK_ORG = 'fhdsa'  # Your organization slug
 
-# In-memory storage for synced events (in production, you'd use a database)
-synced_events = set()
+# In-memory storage for event mappings (in production, you'd use a database)
+# Format: {action_network_id: {'teamup_id': '123', 'last_modified': '2025-06-22T...', 'status': 'confirmed'}}
+event_mappings = {}
 
 class ActionNetworkTeamUpSync:
     def __init__(self):
@@ -178,28 +179,6 @@ class ActionNetworkTeamUpSync:
             # Remove empty fields
             teamup_event = {k: v for k, v in teamup_event.items() if v}
             
-            # Log which subcalendar was chosen
-            subcalendar_names = {
-                14502152: "Committee Meetings",
-                14502151: "General Membership", 
-                14502166: "Outreach/Canvassing/Tabling",
-                14502159: "Political Education",
-                14502168: "Protests/Rallies",
-                14502161: "Socials",
-                14502158: "Volunteer/Mutual Aid"
-            }
-            
-            # Check which hashtag was used (for logging)
-            hashtag_used = "none (defaulted to General Membership)"
-            description_lower = description.lower()
-            hashtags = ['#committee', '#general', '#outreach', '#education', '#protest', '#social', '#volunteer']
-            for hashtag in hashtags:
-                if hashtag in description_lower:
-                    hashtag_used = hashtag
-                    break
-            
-            logger.info(f"📅 Event '{title}' → {subcalendar_names.get(subcalendar_id, 'Unknown')} subcalendar (hashtag: {hashtag_used})")
-            
             return teamup_event
             
         except Exception as e:
@@ -227,44 +206,155 @@ class ActionNetworkTeamUpSync:
             logger.error(f"❌ Error creating TeamUp event: {str(e)}")
             return None
     
-    def sync_events(self):
+    def update_teamup_event(self, teamup_event_id, event_data):
         """
-        Sync events from Action Network to TeamUp
+        Update an existing event in TeamUp Calendar
         """
         try:
-            logger.info("🔄 Starting event sync...")
+            url = f"{self.teamup_base_url}/events/{teamup_event_id}"
+            
+            response = requests.put(url, headers=self.teamup_headers, json=event_data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"✅ Updated TeamUp event: {event_data.get('title', 'No title')}")
+                return result
+            else:
+                logger.error(f"❌ Failed to update TeamUp event: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"❌ Error updating TeamUp event: {str(e)}")
+            return None
+    
+    def delete_teamup_event(self, teamup_event_id):
+        """
+        Delete an event from TeamUp Calendar
+        """
+        try:
+            url = f"{self.teamup_base_url}/events/{teamup_event_id}"
+            
+            response = requests.delete(url, headers=self.teamup_headers)
+            
+            if response.status_code == 204:
+                logger.info(f"✅ Deleted TeamUp event ID: {teamup_event_id}")
+                return True
+            else:
+                logger.error(f"❌ Failed to delete TeamUp event: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"❌ Error deleting TeamUp event: {str(e)}")
+            return False
+    
+    def sync_events(self):
+        """
+        Full two-way sync of events from Action Network to TeamUp
+        """
+        try:
+            logger.info("🔄 Starting full event sync...")
             
             # Fetch events from Action Network
             an_events = self.fetch_action_network_events()
             
             new_events_count = 0
+            updated_events_count = 0
+            deleted_events_count = 0
             
+            # Process each Action Network event
             for an_event in an_events:
-                event_id = an_event.get('identifier', an_event.get('id', ''))
-                
-                # Skip if we've already synced this event
-                if event_id in synced_events:
+                event_id = an_event.get('identifiers', [{}])[0].split(':')[-1] if an_event.get('identifiers') else an_event.get('id', '')
+                if not event_id:
+                    logger.warning(f"⚠️ No valid ID found for event: {an_event.get('title', 'No title')}")
                     continue
                 
-                # Transform and create in TeamUp
-                teamup_event_data = self.transform_action_network_event(an_event)
+                title = an_event.get('title', 'No title')
+                status = an_event.get('status', 'confirmed')
+                modified_date = an_event.get('modified_date', '')
                 
-                if teamup_event_data:
-                    result = self.create_teamup_event(teamup_event_data)
-                    
-                    if result:
-                        synced_events.add(event_id)
-                        new_events_count += 1
-                        logger.info(f"✅ Synced event: {teamup_event_data.get('title', 'No title')}")
+                # Check if event is cancelled
+                if status == 'cancelled':
+                    if event_id in event_mappings:
+                        # Event was previously synced but now cancelled - delete from TeamUp
+                        teamup_event_id = event_mappings[event_id]['teamup_id']
+                        if self.delete_teamup_event(teamup_event_id):
+                            del event_mappings[event_id]
+                            deleted_events_count += 1
+                            logger.info(f"🗑️ Removed cancelled event: {title}")
                     else:
-                        logger.error(f"❌ Failed to sync event: {teamup_event_data.get('title', 'No title')}")
+                        # Event is cancelled and was never synced - skip
+                        logger.info(f"⏭️ Skipping cancelled event: {title}")
+                    continue
+                
+                # Check if this is a new event or needs updating
+                if event_id not in event_mappings:
+                    # New event - create in TeamUp
+                    teamup_event_data = self.transform_action_network_event(an_event)
+                    
+                    if teamup_event_data:
+                        result = self.create_teamup_event(teamup_event_data)
+                        
+                        if result:
+                            teamup_event_id = result.get('event', {}).get('id')
+                            event_mappings[event_id] = {
+                                'teamup_id': teamup_event_id,
+                                'last_modified': modified_date,
+                                'status': status
+                            }
+                            new_events_count += 1
+                            
+                            # Log subcalendar assignment
+                            subcalendar_names = {
+                                14502152: "Committee Meetings",
+                                14502151: "General Membership", 
+                                14502166: "Outreach/Canvassing/Tabling",
+                                14502159: "Political Education",
+                                14502168: "Protests/Rallies",
+                                14502161: "Socials",
+                                14502158: "Volunteer/Mutual Aid"
+                            }
+                            
+                            hashtag_used = "none (defaulted to General Membership)"
+                            description_lower = an_event.get('description', '').lower()
+                            hashtags = ['#committee', '#general', '#outreach', '#education', '#protest', '#social', '#volunteer']
+                            for hashtag in hashtags:
+                                if hashtag in description_lower:
+                                    hashtag_used = hashtag
+                                    break
+                            
+                            subcalendar_id = teamup_event_data.get('subcalendar_ids', [14502151])[0]
+                            logger.info(f"📅 New event '{title}' → {subcalendar_names.get(subcalendar_id, 'Unknown')} (hashtag: {hashtag_used})")
+                
+                else:
+                    # Existing event - check if it needs updating
+                    stored_info = event_mappings[event_id]
+                    
+                    if modified_date != stored_info['last_modified'] or status != stored_info['status']:
+                        # Event has been modified - update in TeamUp
+                        teamup_event_data = self.transform_action_network_event(an_event)
+                        
+                        if teamup_event_data:
+                            result = self.update_teamup_event(stored_info['teamup_id'], teamup_event_data)
+                            
+                            if result:
+                                event_mappings[event_id]['last_modified'] = modified_date
+                                event_mappings[event_id]['status'] = status
+                                updated_events_count += 1
+                                logger.info(f"🔄 Updated event: {title}")
+                    else:
+                        # No changes needed
+                        logger.debug(f"✅ Event up to date: {title}")
             
-            logger.info(f"🔄 Sync complete. {new_events_count} new events synced.")
-            return new_events_count
+            logger.info(f"🔄 Sync complete. {new_events_count} new, {updated_events_count} updated, {deleted_events_count} deleted")
+            return {
+                'new_events': new_events_count,
+                'updated_events': updated_events_count,
+                'deleted_events': deleted_events_count
+            }
             
         except Exception as e:
             logger.error(f"❌ Error during sync: {str(e)}")
-            return 0
+            return {'error': str(e)}
     
     def test_action_network_connection(self):
         """
@@ -335,12 +425,20 @@ def home():
     return jsonify({
         'service': 'Action Network to TeamUp Integration',
         'status': 'running',
-        'mode': 'API Polling',
+        'mode': 'Two-Way Sync',
         'sync_interval': '30 minutes',
+        'features': [
+            'Creates new events',
+            'Updates modified events', 
+            'Deletes cancelled events',
+            'Hashtag-based subcalendar mapping',
+            'Registration links in descriptions'
+        ],
         'endpoints': {
             'health': '/health',
             'sync_now': '/sync',
             'status': '/status',
+            'mappings': '/mappings',
             'debug': '/debug/action-network'
         }
     })
@@ -372,7 +470,7 @@ def health_check():
             'action_network_connection_working': action_network_connection
         },
         'sync_status': {
-            'events_synced_count': len(synced_events),
+            'total_mapped_events': len(event_mappings),
             'background_sync_running': True if ACTION_NETWORK_API_KEY else False
         }
     })
@@ -384,13 +482,19 @@ def manual_sync():
     """
     try:
         logger.info("🔄 Manual sync triggered")
-        new_events = sync_service.sync_events()
+        result = sync_service.sync_events()
+        
+        if 'error' in result:
+            return jsonify({
+                'status': 'error',
+                'message': result['error']
+            }), 500
         
         return jsonify({
             'status': 'success',
-            'message': f'Sync completed. {new_events} new events synced.',
-            'new_events_count': new_events,
-            'total_synced_events': len(synced_events)
+            'message': f'Sync completed. {result["new_events"]} new, {result["updated_events"]} updated, {result["deleted_events"]} deleted.',
+            'result': result,
+            'total_mapped_events': len(event_mappings)
         })
         
     except Exception as e:
@@ -406,10 +510,20 @@ def sync_status():
     Get sync status
     """
     return jsonify({
-        'total_events_synced': len(synced_events),
-        'synced_event_ids': list(synced_events),
+        'total_mapped_events': len(event_mappings),
         'last_sync': 'Running in background every 30 minutes',
-        'next_sync': 'Within 30 minutes'
+        'next_sync': 'Within 30 minutes',
+        'sync_mode': 'Two-way (create, update, delete)'
+    })
+
+@app.route('/mappings', methods=['GET'])
+def event_mappings_status():
+    """
+    Show current event mappings
+    """
+    return jsonify({
+        'total_events': len(event_mappings),
+        'mappings': event_mappings
     })
 
 @app.route('/debug/action-network', methods=['GET'])
@@ -465,10 +579,11 @@ if __name__ == '__main__':
     if not ACTION_NETWORK_API_KEY:
         logger.warning("⚠️  Action Network API key not configured!")
     
-    logger.info(f"🚀 Starting Action Network to TeamUp Sync Service on port {port}")
+    logger.info(f"🚀 Starting Action Network to TeamUp Two-Way Sync Service on port {port}")
     logger.info(f"📡 Manual sync endpoint: /sync")
     logger.info(f"❤️  Health check: /health")
     logger.info(f"📊 Status endpoint: /status")
+    logger.info(f"🔗 Mappings endpoint: /mappings")
     logger.info(f"🐛 Debug endpoint: /debug/action-network")
     
     app.run(host='0.0.0.0', port=port, debug=False)
