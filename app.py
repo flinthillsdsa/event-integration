@@ -409,8 +409,22 @@ class ActionNetworkTeamUpSync:
                     # Existing event - check if it needs updating
                     stored_info = event_mappings[event_id]
                     
-                    if modified_date != stored_info['last_modified'] or status != stored_info['status']:
+                    # Check if event has been modified
+                    needs_update = False
+                    update_reasons = []
+                    
+                    if modified_date != stored_info.get('last_modified', ''):
+                        needs_update = True
+                        update_reasons.append(f"modified_date changed from {stored_info.get('last_modified', 'unknown')} to {modified_date}")
+                    
+                    if status != stored_info.get('status', ''):
+                        needs_update = True
+                        update_reasons.append(f"status changed from {stored_info.get('status', 'unknown')} to {status}")
+                    
+                    if needs_update:
                         # Event has been modified - update in TeamUp
+                        logger.info(f"🔄 UPDATE DETECTED for '{title}': {', '.join(update_reasons)}")
+                        
                         teamup_event_data = self.transform_action_network_event(an_event)
                         
                         if teamup_event_data:
@@ -419,11 +433,14 @@ class ActionNetworkTeamUpSync:
                             if result:
                                 event_mappings[event_id]['last_modified'] = modified_date
                                 event_mappings[event_id]['status'] = status
+                                event_mappings[event_id]['title'] = title  # Update stored title too
                                 updated_events_count += 1
-                                logger.info(f"🔄 Updated event: {title}")
+                                logger.info(f"✅ UPDATED: '{title}' in TeamUp")
+                            else:
+                                logger.error(f"❌ Failed to update TeamUp event: {title}")
                     else:
                         # No changes needed
-                        logger.debug(f"✅ Event up to date: {title}")
+                        logger.debug(f"✅ No changes needed for: {title}")
             
             logger.info(f"🔄 Sync complete. {new_events_count} new, {updated_events_count} updated, {deleted_events_count} deleted")
             return {
@@ -596,6 +613,92 @@ def sync_status():
         'next_sync': 'Within 30 minutes',
         'sync_mode': 'Two-way (create, update, delete)'
     })
+
+@app.route('/force-update/<event_id>', methods=['POST'])
+def force_update_event(event_id):
+    """
+    Force update a specific event from Action Network to TeamUp
+    """
+    try:
+        if event_id not in event_mappings:
+            return jsonify({
+                'status': 'error',
+                'message': f'Event ID {event_id} not found in mappings'
+            }), 404
+        
+        # Fetch the specific event from Action Network
+        an_events = sync_service.fetch_action_network_events(limit=100)  # Get more events to find this one
+        
+        target_event = None
+        for an_event in an_events:
+            # Use same ID extraction logic as sync
+            extracted_id = None
+            identifiers = an_event.get('identifiers', [])
+            
+            if identifiers:
+                for identifier in identifiers:
+                    if isinstance(identifier, str) and ':' in identifier:
+                        extracted_id = identifier.split(':')[-1]
+                        break
+                    elif isinstance(identifier, str):
+                        extracted_id = identifier
+                        break
+            
+            if not extracted_id:
+                extracted_id = an_event.get('id', '')
+            
+            if not extracted_id:
+                browser_url = an_event.get('browser_url', '')
+                if browser_url:
+                    extracted_id = browser_url.split('/')[-1]
+            
+            if extracted_id == event_id:
+                target_event = an_event
+                break
+        
+        if not target_event:
+            return jsonify({
+                'status': 'error',
+                'message': f'Event ID {event_id} not found in Action Network'
+            }), 404
+        
+        # Transform and update the event
+        teamup_event_data = sync_service.transform_action_network_event(target_event)
+        
+        if teamup_event_data:
+            stored_info = event_mappings[event_id]
+            result = sync_service.update_teamup_event(stored_info['teamup_id'], teamup_event_data)
+            
+            if result:
+                # Update stored info
+                event_mappings[event_id]['last_modified'] = target_event.get('modified_date', '')
+                event_mappings[event_id]['status'] = target_event.get('status', 'confirmed')
+                event_mappings[event_id]['title'] = target_event.get('title', 'No title')
+                
+                logger.info(f"🔄 Force updated event: {target_event.get('title', 'No title')}")
+                
+                return jsonify({
+                    'status': 'success',
+                    'message': f'Successfully force updated event: {target_event.get("title", "No title")}',
+                    'teamup_event_id': stored_info['teamup_id']
+                })
+            else:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Failed to update event in TeamUp'
+                }), 500
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to transform event data'
+            }), 500
+            
+    except Exception as e:
+        logger.error(f"❌ Force update error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 @app.route('/clear-mappings', methods=['POST'])
 def clear_mappings():
