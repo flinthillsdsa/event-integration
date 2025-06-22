@@ -109,10 +109,10 @@ class ActionNetworkTeamUpSync:
             enhanced_description = description
             if registration_url:
                 if description:
-                    # Try different formats for the registration link
-                    enhanced_description += f"\n\nRegister here: {registration_url}"
+                    # Use HTML link format
+                    enhanced_description += f'\n\n<a href="{registration_url}" target="_blank">Register here</a>'
                 else:
-                    enhanced_description = f"Register here: {registration_url}"
+                    enhanced_description = f'<a href="{registration_url}" target="_blank">Register here</a>'
             
             # Handle start/end times with timezone conversion
             start_date = None
