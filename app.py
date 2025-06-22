@@ -49,8 +49,7 @@ class ActionNetworkTeamUpSync:
         try:
             url = f"{self.action_network_base_url}/events"
             params = {
-                'limit': limit,
-                'filter': f'organization_slug eq "{ACTION_NETWORK_ORG}"'
+                'limit': limit
             }
             
             logger.info(f"Fetching events from Action Network...")
