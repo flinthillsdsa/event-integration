@@ -359,25 +359,40 @@ def debug_action_network():
     """
     Debug endpoint to see raw Action Network response
     """
+    results = {}
+    
+    # Test 1: Basic connection without filters
     try:
         url = f"{sync_service.action_network_base_url}/events"
-        params = {
-            'limit': 10,
-            'filter': f'organization_slug eq "{ACTION_NETWORK_ORG}"'
-        }
+        response = requests.get(url, headers=sync_service.action_network_headers)
         
-        response = requests.get(url, headers=sync_service.action_network_headers, params=params)
-        
-        return jsonify({
+        results['test1_no_filter'] = {
             'status_code': response.status_code,
-            'url': url,
-            'params': params,
-            'response': response.json() if response.status_code == 200 else response.text,
-            'organization_slug': ACTION_NETWORK_ORG
-        })
-        
+            'response': response.json() if response.status_code == 200 else response.text[:500]
+        }
     except Exception as e:
-        return jsonify({'error': str(e)})
+        results['test1_no_filter'] = {'error': str(e)}
+    
+    # Test 2: Check API endpoint
+    try:
+        url = "https://actionnetwork.org/api/v2/"
+        response = requests.get(url, headers=sync_service.action_network_headers)
+        
+        results['test2_api_root'] = {
+            'status_code': response.status_code,
+            'response': response.json() if response.status_code == 200 else response.text[:500]
+        }
+    except Exception as e:
+        results['test2_api_root'] = {'error': str(e)}
+    
+    # Test 3: Check headers
+    results['test3_headers'] = {
+        'headers_used': dict(sync_service.action_network_headers),
+        'api_key_configured': bool(ACTION_NETWORK_API_KEY),
+        'api_key_length': len(ACTION_NETWORK_API_KEY) if ACTION_NETWORK_API_KEY else 0
+    }
+    
+    return jsonify(results)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
