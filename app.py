@@ -113,7 +113,7 @@ class ActionNetworkTeamUpSync:
                 else:
                     enhanced_description = f"Register here: {registration_url}"
             
-            # Handle start/end times
+            # Handle start/end times with timezone conversion
             start_date = None
             end_date = None
             
@@ -127,6 +127,44 @@ class ActionNetworkTeamUpSync:
                 end_date = an_event['end_date']
             elif 'end_time' in an_event:
                 end_date = an_event['end_time']
+            
+            # Convert times from Central to UTC if they don't have timezone info
+            def convert_to_utc(time_str):
+                if not time_str:
+                    return None
+                
+                try:
+                    # If the time string ends with 'Z', it's already UTC
+                    if time_str.endswith('Z'):
+                        return time_str
+                    
+                    # If it has timezone info (+00:00 format), keep as is
+                    if '+' in time_str or time_str.endswith(('00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00')):
+                        return time_str
+                    
+                    # Assume it's Central Time and convert to UTC
+                    from datetime import datetime
+                    import pytz
+                    
+                    # Parse the datetime
+                    dt = datetime.fromisoformat(time_str.replace('Z', ''))
+                    
+                    # Assume Central Time (US/Central handles DST automatically)
+                    central = pytz.timezone('US/Central')
+                    dt_central = central.localize(dt)
+                    
+                    # Convert to UTC
+                    dt_utc = dt_central.astimezone(pytz.UTC)
+                    
+                    # Return in ISO format with Z
+                    return dt_utc.isoformat().replace('+00:00', 'Z')
+                    
+                except Exception as e:
+                    logger.warning(f"⚠️ Error converting time {time_str}: {e}")
+                    return time_str  # Return original if conversion fails
+            
+            start_date = convert_to_utc(start_date)
+            end_date = convert_to_utc(end_date)
             
             # If no end time, assume 2 hours after start
             if start_date and not end_date:
