@@ -304,7 +304,30 @@ class ActionNetworkTeamUpSync:
             
             # Process each Action Network event
             for an_event in an_events:
-                event_id = an_event.get('identifiers', [{}])[0].split(':')[-1] if an_event.get('identifiers') else an_event.get('id', '')
+                # Try multiple ways to get a unique ID
+                event_id = None
+                identifiers = an_event.get('identifiers', [])
+                
+                if identifiers:
+                    # Extract ID from identifiers like "action_network:d909fe46-37fb-4e88-b5d5-681c8ecd4ed6"
+                    for identifier in identifiers:
+                        if isinstance(identifier, str) and ':' in identifier:
+                            event_id = identifier.split(':')[-1]
+                            break
+                        elif isinstance(identifier, str):
+                            event_id = identifier
+                            break
+                
+                # Fallback to other ID fields if identifiers don't work
+                if not event_id:
+                    event_id = an_event.get('id', '')
+                
+                # Last resort: use browser_url as unique identifier
+                if not event_id:
+                    browser_url = an_event.get('browser_url', '')
+                    if browser_url:
+                        event_id = browser_url.split('/')[-1]  # Extract event slug from URL
+                
                 if not event_id:
                     logger.warning(f"⚠️ No valid ID found for event: {an_event.get('title', 'No title')}")
                     continue
@@ -312,6 +335,8 @@ class ActionNetworkTeamUpSync:
                 title = an_event.get('title', 'No title')
                 status = an_event.get('status', 'confirmed')
                 modified_date = an_event.get('modified_date', '')
+                
+                logger.debug(f"🔍 Processing event: {title} (ID: {event_id}, Status: {status})")
                 
                 # Check if event is cancelled
                 if status == 'cancelled':
@@ -329,42 +354,56 @@ class ActionNetworkTeamUpSync:
                 
                 # Check if this is a new event or needs updating
                 if event_id not in event_mappings:
-                    # New event - create in TeamUp
-                    teamup_event_data = self.transform_action_network_event(an_event)
+                    # New event - but first check if we might have seen this event before with a different ID
+                    potential_duplicate = False
+                    for existing_id, mapping in event_mappings.items():
+                        # Simple duplicate check based on title and start time
+                        # You could make this more sophisticated
+                        pass  # For now, just proceed with creation
                     
-                    if teamup_event_data:
-                        result = self.create_teamup_event(teamup_event_data)
+                    if not potential_duplicate:
+                        # Create new event in TeamUp
+                        teamup_event_data = self.transform_action_network_event(an_event)
                         
-                        if result:
-                            teamup_event_id = result.get('event', {}).get('id')
-                            event_mappings[event_id] = {
-                                'teamup_id': teamup_event_id,
-                                'last_modified': modified_date,
-                                'status': status
-                            }
-                            new_events_count += 1
+                        if teamup_event_data:
+                            result = self.create_teamup_event(teamup_event_data)
                             
-                            # Log subcalendar assignment
-                            subcalendar_names = {
-                                14502152: "Committee Meetings",
-                                14502151: "General Membership", 
-                                14502166: "Outreach/Canvassing/Tabling",
-                                14502159: "Political Education",
-                                14502168: "Protests/Rallies",
-                                14502161: "Socials",
-                                14502158: "Volunteer/Mutual Aid"
-                            }
-                            
-                            hashtag_used = "none (defaulted to General Membership)"
-                            description_lower = an_event.get('description', '').lower()
-                            hashtags = ['#committee', '#general', '#outreach', '#education', '#protest', '#social', '#volunteer']
-                            for hashtag in hashtags:
-                                if hashtag in description_lower:
-                                    hashtag_used = hashtag
-                                    break
-                            
-                            subcalendar_id = teamup_event_data.get('subcalendar_ids', [14502151])[0]
-                            logger.info(f"📅 New event '{title}' → {subcalendar_names.get(subcalendar_id, 'Unknown')} (hashtag: {hashtag_used})")
+                            if result:
+                                teamup_event_id = result.get('event', {}).get('id')
+                                event_mappings[event_id] = {
+                                    'teamup_id': teamup_event_id,
+                                    'last_modified': modified_date,
+                                    'status': status,
+                                    'title': title,  # Store title for debugging
+                                    'action_network_url': an_event.get('browser_url', '')
+                                }
+                                new_events_count += 1
+                                
+                                # Log subcalendar assignment
+                                subcalendar_names = {
+                                    14502152: "Committee Meetings",
+                                    14502151: "General Membership", 
+                                    14502166: "Outreach/Canvassing/Tabling",
+                                    14502159: "Political Education",
+                                    14502168: "Protests/Rallies",
+                                    14502161: "Socials",
+                                    14502158: "Volunteer/Mutual Aid"
+                                }
+                                
+                                hashtag_used = "none (defaulted to General Membership)"
+                                description_lower = an_event.get('description', '').lower()
+                                hashtags = ['#committee', '#general', '#outreach', '#education', '#protest', '#social', '#volunteer']
+                                for hashtag in hashtags:
+                                    if hashtag in description_lower:
+                                        hashtag_used = hashtag
+                                        break
+                                
+                                subcalendar_id = teamup_event_data.get('subcalendar_ids', [14502151])[0]
+                                logger.info(f"📅 NEW: '{title}' (ID: {event_id}) → {subcalendar_names.get(subcalendar_id, 'Unknown')} (hashtag: {hashtag_used})")
+                            else:
+                                logger.error(f"❌ Failed to create event: {title}")
+                    else:
+                        logger.info(f"⏭️ Skipping potential duplicate: {title}")
                 
                 else:
                     # Existing event - check if it needs updating
@@ -480,6 +519,7 @@ def home():
             'sync_now': '/sync',
             'status': '/status',
             'mappings': '/mappings',
+            'clear_mappings': '/clear-mappings',
             'debug': '/debug/action-network'
         }
     })
@@ -555,6 +595,42 @@ def sync_status():
         'last_sync': 'Running in background every 30 minutes',
         'next_sync': 'Within 30 minutes',
         'sync_mode': 'Two-way (create, update, delete)'
+    })
+
+@app.route('/clear-mappings', methods=['POST'])
+def clear_mappings():
+    """
+    Clear all event mappings (use if you have duplicates and want to start fresh)
+    """
+    global event_mappings
+    count = len(event_mappings)
+    event_mappings.clear()
+    
+    logger.info(f"🗑️ Cleared {count} event mappings")
+    
+    return jsonify({
+        'status': 'success',
+        'message': f'Cleared {count} event mappings. Next sync will treat all events as new.',
+        'warning': 'This may create duplicates if events already exist in TeamUp. Consider manually cleaning TeamUp first.'
+    })
+
+@app.route('/debug/mappings', methods=['GET'])
+def debug_mappings():
+    """
+    Debug endpoint to see detailed mapping information
+    """
+    detailed_mappings = {}
+    
+    for an_id, mapping in event_mappings.items():
+        detailed_mappings[an_id] = {
+            'teamup_id': mapping['teamup_id'],
+            'last_modified': mapping['last_modified'],
+            'status': mapping['status']
+        }
+    
+    return jsonify({
+        'total_mappings': len(event_mappings),
+        'detailed_mappings': detailed_mappings
     })
 
 @app.route('/mappings', methods=['GET'])
