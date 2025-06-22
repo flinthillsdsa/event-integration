@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
 Action Network to TeamUp Integration Service
-Receives webhooks from Action Network and creates events in TeamUp Calendar
+Polls Action Network for events and creates them in TeamUp Calendar
 """
 
 from flask import Flask, request, jsonify
 import requests
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import logging
+import threading
+import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -20,80 +22,130 @@ app = Flask(__name__)
 # Configuration - set these as environment variables
 TEAMUP_API_KEY = os.environ.get('TEAMUP_API_KEY')
 TEAMUP_CALENDAR_KEY = os.environ.get('TEAMUP_CALENDAR_KEY')
+ACTION_NETWORK_API_KEY = os.environ.get('ACTION_NETWORK_API_KEY')
+ACTION_NETWORK_ORG = 'fhdsa'  # Your organization slug
 
-class TeamUpIntegrator:
+# In-memory storage for synced events (in production, you'd use a database)
+synced_events = set()
+
+class ActionNetworkTeamUpSync:
     def __init__(self):
         self.teamup_base_url = f"https://api.teamup.com/{TEAMUP_CALENDAR_KEY}"
         self.teamup_headers = {
             'Teamup-Token': TEAMUP_API_KEY,
             'Content-Type': 'application/json'
         }
-    
-    def transform_event_data(self, action_network_data):
-        """
-        Transform Action Network event data to TeamUp format
-        """
-        event = action_network_data.get('event', {})
-        
-        # Extract event details
-        title = event.get('title', 'Untitled Event')
-        description = event.get('description', '')
-        start_date = event.get('start_date')
-        end_date = event.get('end_date', start_date)  # Use start_date if no end_date
-        location = event.get('location', {})
-        
-        # Format location
-        location_str = self.format_location(location)
-        
-        # TeamUp event format
-        teamup_event = {
-            'subcalendar_ids': [14502152],  # Default to Committee Meetings
-            'title': title,
-            'notes': description,
-            'location': location_str,
-            'start_dt': start_date,
-            'end_dt': end_date,
-            'all_day': False
+        self.action_network_headers = {
+            'OSDI-API-Token': ACTION_NETWORK_API_KEY,
+            'Content-Type': 'application/json'
         }
-        
-        # Remove empty fields
-        teamup_event = {k: v for k, v in teamup_event.items() if v}
-        
-        return teamup_event
+        self.action_network_base_url = 'https://actionnetwork.org/api/v2'
     
-    def format_location(self, location):
+    def fetch_action_network_events(self, limit=25):
         """
-        Format location data from Action Network to a string
+        Fetch events from Action Network API
         """
-        if not location:
-            return ""
-        
-        location_str = ""
-        if isinstance(location, dict):
-            # Handle Action Network location object
-            address_lines = location.get('address_lines', [])
-            locality = location.get('locality', '')
-            region = location.get('region', '')
-            postal_code = location.get('postal_code', '')
-            country = location.get('country', '')
+        try:
+            url = f"{self.action_network_base_url}/events"
+            params = {
+                'limit': limit,
+                'filter': f'organization_slug eq "{ACTION_NETWORK_ORG}"'
+            }
             
-            parts = []
-            if address_lines:
-                parts.extend(address_lines)
-            if locality:
-                parts.append(locality)
-            if region:
-                parts.append(region)
-            if postal_code:
-                parts.append(postal_code)
-            if country and country.upper() != 'US':  # Only add country if not US
-                parts.append(country)
+            logger.info(f"Fetching events from Action Network...")
+            response = requests.get(url, headers=self.action_network_headers, params=params)
             
-            location_str = ', '.join(parts)
-        elif isinstance(location, str):
-            location_str = location
-        
-        return location_str
+            if response.status_code == 200:
+                data = response.json()
+                events = data.get('_embedded', {}).get('osdi:events', [])
+                logger.info(f"✅ Fetched {len(events)} events from Action Network")
+                return events
+            else:
+                logger.error(f"❌ Failed to fetch Action Network events: {response.status_code} - {response.text}")
+                return []
+                
+        except Exception as e:
+            logger.error(f"❌ Error fetching Action Network events: {str(e)}")
+            return []
+    
+    def transform_action_network_event(self, an_event):
+        """
+        Transform Action Network event to TeamUp format
+        """
+        try:
+            title = an_event.get('title', 'Untitled Event')
+            description = an_event.get('description', '')
+            
+            # Handle start/end times
+            start_date = None
+            end_date = None
+            
+            # Action Network events can have multiple start/end times
+            if 'start_date' in an_event:
+                start_date = an_event['start_date']
+            elif 'start_time' in an_event:
+                start_date = an_event['start_time']
+            
+            if 'end_date' in an_event:
+                end_date = an_event['end_date']
+            elif 'end_time' in an_event:
+                end_date = an_event['end_time']
+            
+            # If no end time, assume 2 hours after start
+            if start_date and not end_date:
+                try:
+                    start_dt = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+                    end_dt = start_dt + timedelta(hours=2)
+                    end_date = end_dt.isoformat().replace('+00:00', 'Z')
+                except:
+                    end_date = start_date
+            
+            # Handle location
+            location_str = ""
+            location = an_event.get('location', {})
+            if location:
+                if isinstance(location, dict):
+                    venue = location.get('venue', '')
+                    address_lines = location.get('address_lines', [])
+                    locality = location.get('locality', '')
+                    region = location.get('region', '')
+                    postal_code = location.get('postal_code', '')
+                    
+                    parts = []
+                    if venue:
+                        parts.append(venue)
+                    if address_lines:
+                        parts.extend(address_lines)
+                    if locality:
+                        parts.append(locality)
+                    if region:
+                        parts.append(region)
+                    if postal_code:
+                        parts.append(postal_code)
+                    
+                    location_str = ', '.join(parts)
+                elif isinstance(location, str):
+                    location_str = location
+            
+            # TeamUp event format
+            teamup_event = {
+                'subcalendar_ids': [14502152],  # Default to Committee Meetings
+                'title': title,
+                'notes': description,
+                'location': location_str,
+                'start_dt': start_date,
+                'end_dt': end_date,
+                'all_day': False
+            }
+            
+            # Remove empty fields
+            teamup_event = {k: v for k, v in teamup_event.items() if v}
+            
+            return teamup_event
+            
+        except Exception as e:
+            logger.error(f"❌ Error transforming event: {str(e)}")
+            return None
     
     def create_teamup_event(self, event_data):
         """
@@ -102,18 +154,12 @@ class TeamUpIntegrator:
         try:
             url = f"{self.teamup_base_url}/events"
             
-            logger.info(f"Creating TeamUp event: {event_data.get('title', 'No title')}")
-            logger.info(f"TeamUp API URL: {url}")
-            logger.info(f"Event data: {json.dumps(event_data, indent=2)}")
-            
             response = requests.post(url, headers=self.teamup_headers, json=event_data)
             
-            logger.info(f"TeamUp API response status: {response.status_code}")
-            logger.info(f"TeamUp API response: {response.text}")
-            
             if response.status_code == 201:
-                logger.info(f"✅ Successfully created TeamUp event: {event_data['title']}")
-                return response.json()
+                result = response.json()
+                logger.info(f"✅ Created TeamUp event: {event_data.get('title', 'No title')}")
+                return result
             else:
                 logger.error(f"❌ Failed to create TeamUp event: {response.status_code} - {response.text}")
                 return None
@@ -122,51 +168,105 @@ class TeamUpIntegrator:
             logger.error(f"❌ Error creating TeamUp event: {str(e)}")
             return None
     
+    def sync_events(self):
+        """
+        Sync events from Action Network to TeamUp
+        """
+        try:
+            logger.info("🔄 Starting event sync...")
+            
+            # Fetch events from Action Network
+            an_events = self.fetch_action_network_events()
+            
+            new_events_count = 0
+            
+            for an_event in an_events:
+                event_id = an_event.get('identifier', an_event.get('id', ''))
+                
+                # Skip if we've already synced this event
+                if event_id in synced_events:
+                    continue
+                
+                # Transform and create in TeamUp
+                teamup_event_data = self.transform_action_network_event(an_event)
+                
+                if teamup_event_data:
+                    result = self.create_teamup_event(teamup_event_data)
+                    
+                    if result:
+                        synced_events.add(event_id)
+                        new_events_count += 1
+                        logger.info(f"✅ Synced event: {teamup_event_data.get('title', 'No title')}")
+                    else:
+                        logger.error(f"❌ Failed to sync event: {teamup_event_data.get('title', 'No title')}")
+            
+            logger.info(f"🔄 Sync complete. {new_events_count} new events synced.")
+            return new_events_count
+            
+        except Exception as e:
+            logger.error(f"❌ Error during sync: {str(e)}")
+            return 0
+    
+    def test_action_network_connection(self):
+        """
+        Test connection to Action Network API
+        """
+        try:
+            url = f"{self.action_network_base_url}/events"
+            params = {'limit': 1}
+            
+            response = requests.get(url, headers=self.action_network_headers, params=params)
+            
+            if response.status_code == 200:
+                logger.info("✅ Action Network API connection successful")
+                return True
+            else:
+                logger.error(f"❌ Action Network API connection failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"❌ Error testing Action Network connection: {str(e)}")
+            return False
+    
     def test_teamup_connection(self):
         """
-        Test the connection to TeamUp API
+        Test connection to TeamUp API
         """
         try:
             url = f"{self.teamup_base_url}/events"
-            
-            # Just try to get events to test the connection
             response = requests.get(url, headers=self.teamup_headers, params={'limit': 1})
             
             if response.status_code == 200:
                 logger.info("✅ TeamUp API connection successful")
                 return True
             else:
-                logger.error(f"❌ TeamUp API connection failed: {response.status_code} - {response.text}")
+                logger.error(f"❌ TeamUp API connection failed: {response.status_code}")
                 return False
                 
         except Exception as e:
             logger.error(f"❌ Error testing TeamUp connection: {str(e)}")
             return False
-    
-    def process_webhook(self, webhook_data):
-        """
-        Process the webhook from Action Network
-        """
-        event_type = webhook_data.get('event_type', '')
-        
-        if event_type in ['event.created', 'event.updated']:
-            logger.info(f"Processing {event_type} webhook")
-            
-            # Transform and create TeamUp event
-            teamup_data = self.transform_event_data(webhook_data)
-            teamup_result = self.create_teamup_event(teamup_data)
-            
-            return {
-                'success': teamup_result is not None,
-                'teamup_event_id': teamup_result.get('event', {}).get('id') if teamup_result else None,
-                'transformed_data': teamup_data
-            }
-        else:
-            logger.info(f"Ignoring webhook type: {event_type}")
-            return {'message': f'Webhook type {event_type} not processed'}
 
-# Initialize integrator
-integrator = TeamUpIntegrator()
+# Initialize sync service
+sync_service = ActionNetworkTeamUpSync()
+
+def background_sync():
+    """
+    Background thread for periodic syncing
+    """
+    while True:
+        try:
+            # Wait 30 minutes between syncs
+            time.sleep(30 * 60)  # 30 minutes
+            sync_service.sync_events()
+        except Exception as e:
+            logger.error(f"❌ Background sync error: {str(e)}")
+
+# Start background sync thread
+if ACTION_NETWORK_API_KEY:
+    sync_thread = threading.Thread(target=background_sync, daemon=True)
+    sync_thread.start()
+    logger.info("🔄 Background sync thread started (runs every 30 minutes)")
 
 @app.route('/', methods=['GET'])
 def home():
@@ -176,40 +276,14 @@ def home():
     return jsonify({
         'service': 'Action Network to TeamUp Integration',
         'status': 'running',
+        'mode': 'API Polling',
+        'sync_interval': '30 minutes',
         'endpoints': {
-            'webhook': '/webhook/action-network',
             'health': '/health',
-            'test': '/test'
+            'sync_now': '/sync',
+            'status': '/status'
         }
     })
-
-@app.route('/webhook/action-network', methods=['POST'])
-def handle_action_network_webhook():
-    """
-    Handle incoming webhooks from Action Network
-    """
-    try:
-        data = request.get_json()
-        
-        logger.info("🔔 Received Action Network webhook")
-        logger.info(f"Event type: {data.get('event_type', 'unknown')}")
-        logger.info(f"Event title: {data.get('event', {}).get('title', 'No title')}")
-        
-        # Process the webhook
-        result = integrator.process_webhook(data)
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Webhook processed',
-            'result': result
-        }), 200
-        
-    except Exception as e:
-        logger.error(f"❌ Error processing webhook: {str(e)}")
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -217,49 +291,65 @@ def health_check():
     Health check endpoint
     """
     teamup_configured = bool(TEAMUP_API_KEY and TEAMUP_CALENDAR_KEY)
+    action_network_configured = bool(ACTION_NETWORK_API_KEY)
+    
     teamup_connection = False
+    action_network_connection = False
     
     if teamup_configured:
-        teamup_connection = integrator.test_teamup_connection()
+        teamup_connection = sync_service.test_teamup_connection()
+    
+    if action_network_configured:
+        action_network_connection = sync_service.test_action_network_connection()
     
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.now(timezone.utc).isoformat(),
         'config': {
-            'teamup_api_key_configured': bool(TEAMUP_API_KEY),
-            'teamup_calendar_key_configured': bool(TEAMUP_CALENDAR_KEY),
-            'teamup_connection_working': teamup_connection
+            'teamup_api_configured': teamup_configured,
+            'action_network_api_configured': action_network_configured,
+            'teamup_connection_working': teamup_connection,
+            'action_network_connection_working': action_network_connection
+        },
+        'sync_status': {
+            'events_synced_count': len(synced_events),
+            'background_sync_running': True if ACTION_NETWORK_API_KEY else False
         }
     })
 
-@app.route('/test', methods=['POST'])
-def test_integration():
+@app.route('/sync', methods=['POST'])
+def manual_sync():
     """
-    Test endpoint to verify TeamUp integration works
+    Manually trigger a sync
     """
-    test_data = {
-        "event_type": "event.created",
-        "event": {
-            "id": "test-123",
-            "title": "🧪 Railway Test Event",
-            "description": "This is a test event to verify the Railway deployment is working correctly.",
-            "start_date": "2025-07-01T19:00:00Z",
-            "end_date": "2025-07-01T21:00:00Z",
-            "location": {
-                "address_lines": ["123 Test Street"],
-                "locality": "Test City",
-                "region": "Test State",
-                "postal_code": "12345"
-            }
-        }
-    }
-    
-    logger.info("🧪 Running integration test...")
-    result = integrator.process_webhook(test_data)
-    
+    try:
+        logger.info("🔄 Manual sync triggered")
+        new_events = sync_service.sync_events()
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'Sync completed. {new_events} new events synced.',
+            'new_events_count': new_events,
+            'total_synced_events': len(synced_events)
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Manual sync error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@app.route('/status', methods=['GET'])
+def sync_status():
+    """
+    Get sync status
+    """
     return jsonify({
-        'status': 'test_completed',
-        'result': result
+        'total_events_synced': len(synced_events),
+        'synced_event_ids': list(synced_events),
+        'last_sync': 'Running in background every 30 minutes',
+        'next_sync': 'Within 30 minutes'
     })
 
 if __name__ == '__main__':
@@ -272,9 +362,12 @@ if __name__ == '__main__':
     if not TEAMUP_CALENDAR_KEY:
         logger.warning("⚠️  TeamUp Calendar key not configured!")
     
-    logger.info(f"🚀 Starting TeamUp Integrator on port {port}")
-    logger.info(f"📡 Webhook endpoint: /webhook/action-network")
+    if not ACTION_NETWORK_API_KEY:
+        logger.warning("⚠️  Action Network API key not configured!")
+    
+    logger.info(f"🚀 Starting Action Network to TeamUp Sync Service on port {port}")
+    logger.info(f"📡 Manual sync endpoint: /sync")
     logger.info(f"❤️  Health check: /health")
-    logger.info(f"🧪 Test endpoint: /test")
+    logger.info(f"📊 Status endpoint: /status")
     
     app.run(host='0.0.0.0', port=port, debug=False)
