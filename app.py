@@ -71,7 +71,8 @@ class ActionNetworkTeamUpSync:
     
     def get_subcalendar_id(self, an_event):
         """
-        Determine which TeamUp subcalendar to use based on hashtags in Action Network event description
+        Determine which TeamUp subcalendar to use based on hashtags anywhere in Action Network event description
+        Hashtags can be at the beginning, middle, or end of the description.
         """
         description = an_event.get('description', '').lower()
         
@@ -86,7 +87,7 @@ class ActionNetworkTeamUpSync:
             '#volunteer': 14502158   # Volunteer/Mutual Aid
         }
         
-        # Check for hashtags in description
+        # Check for hashtags anywhere in description
         for hashtag, subcalendar_id in hashtag_mapping.items():
             if hashtag in description:
                 return subcalendar_id
@@ -107,9 +108,10 @@ class ActionNetworkTeamUpSync:
             enhanced_description = description
             if registration_url:
                 if description:
-                    enhanced_description += f"\n\n📝 Register: {registration_url}"
+                    # Try different formats for the registration link
+                    enhanced_description += f"\n\nRegister here: {registration_url}"
                 else:
-                    enhanced_description = f"📝 Register: {registration_url}"
+                    enhanced_description = f"Register here: {registration_url}"
             
             # Handle start/end times
             start_date = None
