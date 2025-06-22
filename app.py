@@ -135,30 +135,36 @@ class ActionNetworkTeamUpSync:
                     return None
                 
                 try:
-                    # If the time string ends with 'Z', it's already UTC
+                    # Action Network appears to store Central Time with 'Z' suffix incorrectly
+                    # The 'Z' suggests UTC, but the times are actually Central Time
                     if time_str.endswith('Z'):
-                        return time_str
+                        # Remove the 'Z' and treat as Central Time
+                        dt_str = time_str[:-1]  # Remove 'Z'
+                        dt = datetime.fromisoformat(dt_str)
+                        
+                        # Treat as Central Time
+                        central = pytz.timezone('US/Central')
+                        dt_central = central.localize(dt)
+                        
+                        # Convert to UTC
+                        dt_utc = dt_central.astimezone(pytz.UTC)
+                        
+                        # Return in ISO format with Z
+                        result = dt_utc.isoformat().replace('+00:00', 'Z')
+                        logger.debug(f"🕐 Time conversion: {time_str} (Central) → {result} (UTC)")
+                        return result
                     
                     # If it has timezone info (+00:00 format), keep as is
-                    if '+' in time_str or time_str.endswith(('00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00')):
+                    elif '+' in time_str or '-' in time_str.split('T')[-1]:
                         return time_str
                     
-                    # Assume it's Central Time and convert to UTC
-                    from datetime import datetime
-                    import pytz
-                    
-                    # Parse the datetime
-                    dt = datetime.fromisoformat(time_str.replace('Z', ''))
-                    
-                    # Assume Central Time (US/Central handles DST automatically)
-                    central = pytz.timezone('US/Central')
-                    dt_central = central.localize(dt)
-                    
-                    # Convert to UTC
-                    dt_utc = dt_central.astimezone(pytz.UTC)
-                    
-                    # Return in ISO format with Z
-                    return dt_utc.isoformat().replace('+00:00', 'Z')
+                    # If no timezone info, assume Central Time
+                    else:
+                        dt = datetime.fromisoformat(time_str)
+                        central = pytz.timezone('US/Central')
+                        dt_central = central.localize(dt)
+                        dt_utc = dt_central.astimezone(pytz.UTC)
+                        return dt_utc.isoformat().replace('+00:00', 'Z')
                     
                 except Exception as e:
                     logger.warning(f"⚠️ Error converting time {time_str}: {e}")
