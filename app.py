@@ -2,7 +2,7 @@
 """
 Action Network to TeamUp and Discord Integration Service
 Full three-way sync: Action Network → TeamUp → Discord Events
-Version 4.0 - Discord Events Integration
+Version 4.1 - Discord REST API Integration
 """
 
 from flask import Flask, request, jsonify
@@ -14,8 +14,6 @@ import logging
 import threading
 import time
 import pytz
-import discord
-import asyncio
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -34,12 +32,6 @@ ACTION_NETWORK_ORG = 'fhdsa'  # Your organization slug
 # In-memory storage for event mappings (in production, you'd use a database)
 # Format: {action_network_id: {'teamup_id': '123', 'discord_id': '456', 'last_modified': '2025-06-22T...', 'status': 'confirmed'}}
 event_mappings = {}
-
-# Discord bot setup
-discord_bot = None
-if DISCORD_BOT_TOKEN and DISCORD_GUILD_ID:
-    intents = discord.Intents.default()
-    discord_bot = discord.Client(intents=intents)
 
 class ActionNetworkTeamUpDiscordSync:
     def __init__(self):
@@ -304,28 +296,18 @@ class ActionNetworkTeamUpDiscordSync:
             logger.error(f"❌ Error deleting TeamUp event: {str(e)}")
             return False
     
-    async def create_discord_event(self, an_event, teamup_event_data):
+    def create_discord_event_direct(self, an_event, teamup_event_data):
         """
-        Create a Discord scheduled event
+        Create a Discord scheduled event using direct REST API calls (no asyncio)
         """
-        if not discord_bot or not DISCORD_GUILD_ID:
+        if not DISCORD_BOT_TOKEN or not DISCORD_GUILD_ID:
             logger.warning("⚠️ Discord bot not configured, skipping Discord event creation")
             return None
         
         try:
-            # Wait for bot to be ready
-            if not discord_bot.is_ready():
-                logger.warning("⚠️ Discord bot not ready, skipping event creation")
-                return None
-            
-            guild = discord_bot.get_guild(DISCORD_GUILD_ID)
-            if not guild:
-                logger.error(f"❌ Could not find Discord guild with ID {DISCORD_GUILD_ID}")
-                return None
-            
-            # Convert times to datetime objects
-            start_time = datetime.fromisoformat(teamup_event_data['start_dt'].replace('Z', '+00:00'))
-            end_time = datetime.fromisoformat(teamup_event_data['end_dt'].replace('Z', '+00:00')) if teamup_event_data.get('end_dt') else None
+            # Convert times to ISO format
+            start_time = teamup_event_data['start_dt']
+            end_time = teamup_event_data.get('end_dt', start_time)
             
             # Create Discord event description
             description = an_event.get('description', '')
@@ -341,44 +323,52 @@ class ActionNetworkTeamUpDiscordSync:
             if len(description) > 1000:
                 description = description[:997] + "..."
             
-            # Create the Discord event
-            discord_event = await guild.create_scheduled_event(
-                name=teamup_event_data['title'],
-                description=description,
-                start_time=start_time,
-                end_time=end_time,
-                location=teamup_event_data.get('location', 'TBD'),
-                entity_type=discord.EntityType.external,
-                privacy_level=discord.PrivacyLevel.guild_only
-            )
+            # Discord API payload
+            payload = {
+                "name": teamup_event_data['title'],
+                "description": description,
+                "scheduled_start_time": start_time,
+                "scheduled_end_time": end_time,
+                "privacy_level": 2,  # GUILD_ONLY
+                "entity_type": 3,    # EXTERNAL
+                "entity_metadata": {
+                    "location": teamup_event_data.get('location', 'TBD')
+                }
+            }
             
-            logger.info(f"🎮 Created Discord event: {teamup_event_data['title']}")
-            return discord_event.id
+            # Make direct API call to Discord
+            headers = {
+                "Authorization": f"Bot {DISCORD_BOT_TOKEN}",
+                "Content-Type": "application/json"
+            }
+            
+            url = f"https://discord.com/api/v10/guilds/{DISCORD_GUILD_ID}/scheduled-events"
+            response = requests.post(url, headers=headers, json=payload)
+            
+            if response.status_code == 200:
+                discord_event = response.json()
+                discord_event_id = discord_event['id']
+                logger.info(f"🎮 Created Discord event: {teamup_event_data['title']} (ID: {discord_event_id})")
+                return discord_event_id
+            else:
+                logger.error(f"❌ Failed to create Discord event: {response.status_code} - {response.text}")
+                return None
             
         except Exception as e:
             logger.error(f"❌ Error creating Discord event: {str(e)}")
             return None
     
-    async def update_discord_event(self, discord_event_id, an_event, teamup_event_data):
+    def update_discord_event_direct(self, discord_event_id, an_event, teamup_event_data):
         """
-        Update an existing Discord scheduled event
+        Update a Discord scheduled event using direct REST API calls
         """
-        if not discord_bot or not DISCORD_GUILD_ID:
+        if not DISCORD_BOT_TOKEN or not DISCORD_GUILD_ID:
             return None
         
         try:
-            guild = discord_bot.get_guild(DISCORD_GUILD_ID)
-            if not guild:
-                return None
-            
-            discord_event = await guild.fetch_scheduled_event(discord_event_id)
-            if not discord_event:
-                logger.warning(f"⚠️ Discord event {discord_event_id} not found")
-                return None
-            
-            # Convert times to datetime objects
-            start_time = datetime.fromisoformat(teamup_event_data['start_dt'].replace('Z', '+00:00'))
-            end_time = datetime.fromisoformat(teamup_event_data['end_dt'].replace('Z', '+00:00')) if teamup_event_data.get('end_dt') else None
+            # Convert times to ISO format
+            start_time = teamup_event_data['start_dt']
+            end_time = teamup_event_data.get('end_dt', start_time)
             
             # Create Discord event description
             description = an_event.get('description', '')
@@ -394,41 +384,58 @@ class ActionNetworkTeamUpDiscordSync:
             if len(description) > 1000:
                 description = description[:997] + "..."
             
-            # Update the Discord event
-            await discord_event.edit(
-                name=teamup_event_data['title'],
-                description=description,
-                start_time=start_time,
-                end_time=end_time,
-                location=teamup_event_data.get('location', 'TBD')
-            )
+            # Discord API payload
+            payload = {
+                "name": teamup_event_data['title'],
+                "description": description,
+                "scheduled_start_time": start_time,
+                "scheduled_end_time": end_time,
+                "entity_metadata": {
+                    "location": teamup_event_data.get('location', 'TBD')
+                }
+            }
             
-            logger.info(f"🎮 Updated Discord event: {teamup_event_data['title']}")
-            return discord_event_id
+            # Make direct API call to Discord
+            headers = {
+                "Authorization": f"Bot {DISCORD_BOT_TOKEN}",
+                "Content-Type": "application/json"
+            }
+            
+            url = f"https://discord.com/api/v10/guilds/{DISCORD_GUILD_ID}/scheduled-events/{discord_event_id}"
+            response = requests.patch(url, headers=headers, json=payload)
+            
+            if response.status_code == 200:
+                logger.info(f"🎮 Updated Discord event: {teamup_event_data['title']}")
+                return discord_event_id
+            else:
+                logger.error(f"❌ Failed to update Discord event: {response.status_code} - {response.text}")
+                return None
             
         except Exception as e:
             logger.error(f"❌ Error updating Discord event: {str(e)}")
             return None
     
-    async def delete_discord_event(self, discord_event_id):
+    def delete_discord_event_direct(self, discord_event_id):
         """
-        Delete a Discord scheduled event
+        Delete a Discord scheduled event using direct REST API calls
         """
-        if not discord_bot or not DISCORD_GUILD_ID:
+        if not DISCORD_BOT_TOKEN or not DISCORD_GUILD_ID:
             return False
         
         try:
-            guild = discord_bot.get_guild(DISCORD_GUILD_ID)
-            if not guild:
-                return False
+            headers = {
+                "Authorization": f"Bot {DISCORD_BOT_TOKEN}",
+                "Content-Type": "application/json"
+            }
             
-            discord_event = await guild.fetch_scheduled_event(discord_event_id)
-            if discord_event:
-                await discord_event.delete()
+            url = f"https://discord.com/api/v10/guilds/{DISCORD_GUILD_ID}/scheduled-events/{discord_event_id}"
+            response = requests.delete(url, headers=headers)
+            
+            if response.status_code == 204:
                 logger.info(f"🎮 Deleted Discord event ID: {discord_event_id}")
                 return True
             else:
-                logger.warning(f"⚠️ Discord event {discord_event_id} not found for deletion")
+                logger.error(f"❌ Failed to delete Discord event: {response.status_code} - {response.text}")
                 return False
             
         except Exception as e:
@@ -439,9 +446,6 @@ class ActionNetworkTeamUpDiscordSync:
         """
         Full three-way sync of events: Action Network → TeamUp → Discord
         """
-        if discord_bot and not discord_bot.is_ready():
-            logger.warning("⚠️ Discord bot not ready yet, skipping Discord sync")
-        
         try:
             logger.info("🔄 Starting full event sync (Action Network → TeamUp → Discord)...")
             
@@ -500,12 +504,9 @@ class ActionNetworkTeamUpDiscordSync:
                         if self.delete_teamup_event(teamup_event_id):
                             deleted_events_count += 1
                         
-                        # Delete from Discord
-                        if discord_event_id and discord_bot and discord_bot.is_ready():
-                            try:
-                                asyncio.run(self.delete_discord_event(discord_event_id))
-                            except Exception as e:
-                                logger.error(f"❌ Discord event deletion failed: {str(e)}")
+                        # Delete from Discord using direct API
+                        if discord_event_id:
+                            self.delete_discord_event_direct(discord_event_id)
                         
                         del event_mappings[event_id]
                         logger.info(f"🗑️ Removed cancelled event: {title}")
@@ -516,71 +517,52 @@ class ActionNetworkTeamUpDiscordSync:
                 
                 # Check if this is a new event or needs updating
                 if event_id not in event_mappings:
-                    # New event - but first check if we might have seen this event before with a different ID
-                    potential_duplicate = False
-                    for existing_id, mapping in event_mappings.items():
-                        # Simple duplicate check based on title and start time
-                        # You could make this more sophisticated
-                        pass  # For now, just proceed with creation
+                    # New event - create in TeamUp and Discord
+                    teamup_event_data = self.transform_action_network_event(an_event)
                     
-                    if not potential_duplicate:
-                        # Create new event in TeamUp
-                        teamup_event_data = self.transform_action_network_event(an_event)
+                    if teamup_event_data:
+                        result = self.create_teamup_event(teamup_event_data)
                         
-                        if teamup_event_data:
-                            result = self.create_teamup_event(teamup_event_data)
+                        if result:
+                            teamup_event_id = result.get('event', {}).get('id')
                             
-                            if result:
-                                teamup_event_id = result.get('event', {}).get('id')
-                                
-                                # Create Discord event
-                                discord_event_id = None
-                                if discord_bot and discord_bot.is_ready():
-                                    try:
-                                        # Use asyncio.run for proper async handling
-                                        discord_event_id = asyncio.run(
-                                            self.create_discord_event(an_event, teamup_event_data)
-                                        )
-                                    except Exception as e:
-                                        logger.error(f"❌ Discord event creation failed: {str(e)}")
-                                        discord_event_id = None
-                                
-                                event_mappings[event_id] = {
-                                    'teamup_id': teamup_event_id,
-                                    'discord_id': discord_event_id,
-                                    'last_modified': modified_date,
-                                    'status': status,
-                                    'title': title,  # Store title for debugging
-                                    'action_network_url': an_event.get('browser_url', '')
-                                }
-                                new_events_count += 1
-                                
-                                # Log subcalendar assignment
-                                subcalendar_names = {
-                                    14502152: "Committee Meetings",
-                                    14502151: "General Membership", 
-                                    14502166: "Outreach/Canvassing/Tabling",
-                                    14502159: "Political Education",
-                                    14502168: "Protests/Rallies",
-                                    14502161: "Socials",
-                                    14502158: "Volunteer/Mutual Aid"
-                                }
-                                
-                                hashtag_used = "none (defaulted to General Membership)"
-                                description_lower = an_event.get('description', '').lower()
-                                hashtags = ['#committee', '#general', '#outreach', '#education', '#protest', '#social', '#volunteer']
-                                for hashtag in hashtags:
-                                    if hashtag in description_lower:
-                                        hashtag_used = hashtag
-                                        break
-                                
-                                subcalendar_id = teamup_event_data.get('subcalendar_ids', [14502151])[0]
-                                discord_status = "🎮 + Discord" if discord_event_id else ""
-                                logger.info(f"📅 NEW: '{title}' (ID: {event_id}) → {subcalendar_names.get(subcalendar_id, 'Unknown')} (hashtag: {hashtag_used}) {discord_status}")
-                            else:
-                                logger.error(f"❌ Failed to create event: {title}")
-                    else:
-                        logger.info(f"⏭️ Skipping potential duplicate: {title}")
+                            # Create Discord event using direct API
+                            discord_event_id = self.create_discord_event_direct(an_event, teamup_event_data)
+                            
+                            event_mappings[event_id] = {
+                                'teamup_id': teamup_event_id,
+                                'discord_id': discord_event_id,
+                                'last_modified': modified_date,
+                                'status': status,
+                                'title': title,
+                                'action_network_url': an_event.get('browser_url', '')
+                            }
+                            new_events_count += 1
+                            
+                            # Log subcalendar assignment
+                            subcalendar_names = {
+                                14502152: "Committee Meetings",
+                                14502151: "General Membership", 
+                                14502166: "Outreach/Canvassing/Tabling",
+                                14502159: "Political Education",
+                                14502168: "Protests/Rallies",
+                                14502161: "Socials",
+                                14502158: "Volunteer/Mutual Aid"
+                            }
+                            
+                            hashtag_used = "none (defaulted to General Membership)"
+                            description_lower = an_event.get('description', '').lower()
+                            hashtags = ['#committee', '#general', '#outreach', '#education', '#protest', '#social', '#volunteer']
+                            for hashtag in hashtags:
+                                if hashtag in description_lower:
+                                    hashtag_used = hashtag
+                                    break
+                            
+                            subcalendar_id = teamup_event_data.get('subcalendar_ids', [14502151])[0]
+                            discord_status = "🎮 + Discord" if discord_event_id else ""
+                            logger.info(f"📅 NEW: '{title}' (ID: {event_id}) → {subcalendar_names.get(subcalendar_id, 'Unknown')} (hashtag: {hashtag_used}) {discord_status}")
+                        else:
+                            logger.error(f"❌ Failed to create event: {title}")
                 
                 else:
                     # Existing event - check if it needs updating
@@ -609,20 +591,13 @@ class ActionNetworkTeamUpDiscordSync:
                             result = self.update_teamup_event(stored_info['teamup_id'], teamup_event_data)
                             
                             if result:
-                                # Update Discord
-                                if stored_info.get('discord_id') and discord_bot and discord_bot.is_ready():
-                                    loop = asyncio.new_event_loop()
-                                    asyncio.set_event_loop(loop)
-                                    try:
-                                        loop.run_until_complete(
-                                            self.update_discord_event(stored_info['discord_id'], an_event, teamup_event_data)
-                                        )
-                                    finally:
-                                        loop.close()
+                                # Update Discord using direct API
+                                if stored_info.get('discord_id'):
+                                    self.update_discord_event_direct(stored_info['discord_id'], an_event, teamup_event_data)
                                 
                                 event_mappings[event_id]['last_modified'] = modified_date
                                 event_mappings[event_id]['status'] = status
-                                event_mappings[event_id]['title'] = title  # Update stored title too
+                                event_mappings[event_id]['title'] = title
                                 updated_events_count += 1
                                 logger.info(f"✅ UPDATED: '{title}' in TeamUp and Discord")
                             else:
@@ -685,17 +660,6 @@ class ActionNetworkTeamUpDiscordSync:
 # Initialize sync service
 sync_service = ActionNetworkTeamUpDiscordSync()
 
-# Discord bot event handlers
-if discord_bot:
-    @discord_bot.event
-    async def on_ready():
-        logger.info(f"🎮 Discord bot connected as {discord_bot.user}")
-        guild = discord_bot.get_guild(DISCORD_GUILD_ID)
-        if guild:
-            logger.info(f"🎮 Connected to Discord server: {guild.name}")
-        else:
-            logger.error(f"❌ Could not find Discord server with ID: {DISCORD_GUILD_ID}")
-
 def background_sync():
     """
     Background thread for periodic syncing
@@ -708,27 +672,11 @@ def background_sync():
         except Exception as e:
             logger.error(f"❌ Background sync error: {str(e)}")
 
-def start_discord_bot():
-    """
-    Start Discord bot in background thread
-    """
-    if discord_bot and DISCORD_BOT_TOKEN:
-        try:
-            asyncio.set_event_loop(asyncio.new_event_loop())
-            discord_bot.run(DISCORD_BOT_TOKEN)
-        except Exception as e:
-            logger.error(f"❌ Discord bot error: {str(e)}")
-
 # Start background services
 if ACTION_NETWORK_API_KEY:
     sync_thread = threading.Thread(target=background_sync, daemon=True)
     sync_thread.start()
     logger.info("🔄 Background sync thread started (runs every 30 minutes)")
-
-if discord_bot and DISCORD_BOT_TOKEN:
-    discord_thread = threading.Thread(target=start_discord_bot, daemon=True)
-    discord_thread.start()
-    logger.info("🎮 Discord bot thread started")
 
 @app.route('/', methods=['GET'])
 def home():
@@ -736,7 +684,6 @@ def home():
     Home page - shows service status
     """
     discord_configured = bool(DISCORD_BOT_TOKEN and DISCORD_GUILD_ID)
-    discord_connected = discord_bot.is_ready() if discord_bot else False
     
     return jsonify({
         'service': 'Action Network to TeamUp and Discord Integration',
@@ -785,8 +732,14 @@ def health_check():
     if action_network_configured:
         action_network_connection = sync_service.test_action_network_connection()
     
-    if discord_configured and discord_bot:
-        discord_connection = discord_bot.is_ready()
+    if discord_configured and DISCORD_BOT_TOKEN:
+        # Test Discord API access with a simple API call
+        try:
+            headers = {"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+            response = requests.get(f"https://discord.com/api/v10/guilds/{DISCORD_GUILD_ID}", headers=headers)
+            discord_connection = response.status_code == 200
+        except:
+            discord_connection = False
     
     return jsonify({
         'status': 'healthy',
@@ -826,7 +779,7 @@ def manual_sync():
             'message': f'Sync completed. {result["new_events"]} new, {result["updated_events"]} updated, {result["deleted_events"]} deleted.',
             'result': result,
             'total_mapped_events': len(event_mappings),
-            'platforms_synced': ['TeamUp', 'Discord'] if discord_bot and discord_bot.is_ready() else ['TeamUp']
+            'platforms_synced': ['TeamUp', 'Discord'] if DISCORD_BOT_TOKEN and DISCORD_GUILD_ID else ['TeamUp']
         })
         
     except Exception as e:
@@ -846,7 +799,7 @@ def sync_status():
         'last_sync': 'Running in background every 30 minutes',
         'next_sync': 'Within 30 minutes',
         'sync_mode': 'Three-way (Action Network → TeamUp → Discord)',
-        'discord_status': 'connected' if discord_bot and discord_bot.is_ready() else 'not connected'
+        'discord_status': 'configured' if DISCORD_BOT_TOKEN and DISCORD_GUILD_ID else 'not configured'
     })
 
 @app.route('/force-update/<event_id>', methods=['POST'])
@@ -906,17 +859,13 @@ def force_update_event(event_id):
             # Update TeamUp
             result = sync_service.update_teamup_event(stored_info['teamup_id'], teamup_event_data)
             
-            # Update Discord
+            # Update Discord using direct API
             discord_updated = False
-            if stored_info.get('discord_id') and discord_bot and discord_bot.is_ready():
-                try:
-                    discord_result = asyncio.run(
-                        sync_service.update_discord_event(stored_info['discord_id'], target_event, teamup_event_data)
-                    )
-                    discord_updated = discord_result is not None
-                except Exception as e:
-                    logger.error(f"❌ Discord event update failed: {str(e)}")
-                    discord_updated = False
+            if stored_info.get('discord_id'):
+                discord_result = sync_service.update_discord_event_direct(
+                    stored_info['discord_id'], target_event, teamup_event_data
+                )
+                discord_updated = discord_result is not None
             
             if result:
                 # Update stored info
