@@ -68,6 +68,31 @@ class ActionNetworkTeamUpSync:
             logger.error(f"❌ Error fetching Action Network events: {str(e)}")
             return []
     
+    def get_subcalendar_id(self, an_event):
+        """
+        Determine which TeamUp subcalendar to use based on hashtags in Action Network event description
+        """
+        description = an_event.get('description', '').lower()
+        
+        # Hashtag to subcalendar mapping
+        hashtag_mapping = {
+            '#committee': 14502152,  # Committee Meetings
+            '#general': 14502151,    # General Membership
+            '#outreach': 14502166,   # Outreach/Canvassing/Tabling
+            '#education': 14502159,  # Political Education
+            '#protest': 14502168,    # Protests/Rallies
+            '#social': 14502161,     # Socials
+            '#volunteer': 14502158   # Volunteer/Mutual Aid
+        }
+        
+        # Check for hashtags in description
+        for hashtag, subcalendar_id in hashtag_mapping.items():
+            if hashtag in description:
+                return subcalendar_id
+        
+        # Default to General Membership if no hashtag found
+        return 14502151  # General Membership
+    
     def transform_action_network_event(self, an_event):
         """
         Transform Action Network event to TeamUp format
@@ -75,6 +100,15 @@ class ActionNetworkTeamUpSync:
         try:
             title = an_event.get('title', 'Untitled Event')
             description = an_event.get('description', '')
+            registration_url = an_event.get('browser_url', '')
+            
+            # Create enhanced description with registration link
+            enhanced_description = description
+            if registration_url:
+                if description:
+                    enhanced_description += f"\n\n📝 Register: {registration_url}"
+                else:
+                    enhanced_description = f"📝 Register: {registration_url}"
             
             # Handle start/end times
             start_date = None
@@ -127,11 +161,14 @@ class ActionNetworkTeamUpSync:
                 elif isinstance(location, str):
                     location_str = location
             
+            # Determine which subcalendar to use
+            subcalendar_id = self.get_subcalendar_id(an_event)
+            
             # TeamUp event format
             teamup_event = {
-                'subcalendar_ids': [14502152],  # Default to Committee Meetings
+                'subcalendar_ids': [subcalendar_id],
                 'title': title,
-                'notes': description,
+                'notes': enhanced_description,
                 'location': location_str,
                 'start_dt': start_date,
                 'end_dt': end_date,
@@ -140,6 +177,28 @@ class ActionNetworkTeamUpSync:
             
             # Remove empty fields
             teamup_event = {k: v for k, v in teamup_event.items() if v}
+            
+            # Log which subcalendar was chosen
+            subcalendar_names = {
+                14502152: "Committee Meetings",
+                14502151: "General Membership", 
+                14502166: "Outreach/Canvassing/Tabling",
+                14502159: "Political Education",
+                14502168: "Protests/Rallies",
+                14502161: "Socials",
+                14502158: "Volunteer/Mutual Aid"
+            }
+            
+            # Check which hashtag was used (for logging)
+            hashtag_used = "none (defaulted to General Membership)"
+            description_lower = description.lower()
+            hashtags = ['#committee', '#general', '#outreach', '#education', '#protest', '#social', '#volunteer']
+            for hashtag in hashtags:
+                if hashtag in description_lower:
+                    hashtag_used = hashtag
+                    break
+            
+            logger.info(f"📅 Event '{title}' → {subcalendar_names.get(subcalendar_id, 'Unknown')} subcalendar (hashtag: {hashtag_used})")
             
             return teamup_event
             
