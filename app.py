@@ -313,6 +313,11 @@ class ActionNetworkTeamUpDiscordSync:
             return None
         
         try:
+            # Wait for bot to be ready
+            if not discord_bot.is_ready():
+                logger.warning("⚠️ Discord bot not ready, skipping event creation")
+                return None
+            
             guild = discord_bot.get_guild(DISCORD_GUILD_ID)
             if not guild:
                 logger.error(f"❌ Could not find Discord guild with ID {DISCORD_GUILD_ID}")
@@ -497,12 +502,10 @@ class ActionNetworkTeamUpDiscordSync:
                         
                         # Delete from Discord
                         if discord_event_id and discord_bot and discord_bot.is_ready():
-                            loop = asyncio.new_event_loop()
-                            asyncio.set_event_loop(loop)
                             try:
-                                loop.run_until_complete(self.delete_discord_event(discord_event_id))
-                            finally:
-                                loop.close()
+                                asyncio.run(self.delete_discord_event(discord_event_id))
+                            except Exception as e:
+                                logger.error(f"❌ Discord event deletion failed: {str(e)}")
                         
                         del event_mappings[event_id]
                         logger.info(f"🗑️ Removed cancelled event: {title}")
@@ -533,14 +536,14 @@ class ActionNetworkTeamUpDiscordSync:
                                 # Create Discord event
                                 discord_event_id = None
                                 if discord_bot and discord_bot.is_ready():
-                                    loop = asyncio.new_event_loop()
-                                    asyncio.set_event_loop(loop)
                                     try:
-                                        discord_event_id = loop.run_until_complete(
+                                        # Use asyncio.run for proper async handling
+                                        discord_event_id = asyncio.run(
                                             self.create_discord_event(an_event, teamup_event_data)
                                         )
-                                    finally:
-                                        loop.close()
+                                    except Exception as e:
+                                        logger.error(f"❌ Discord event creation failed: {str(e)}")
+                                        discord_event_id = None
                                 
                                 event_mappings[event_id] = {
                                     'teamup_id': teamup_event_id,
@@ -906,15 +909,14 @@ def force_update_event(event_id):
             # Update Discord
             discord_updated = False
             if stored_info.get('discord_id') and discord_bot and discord_bot.is_ready():
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
                 try:
-                    discord_result = loop.run_until_complete(
+                    discord_result = asyncio.run(
                         sync_service.update_discord_event(stored_info['discord_id'], target_event, teamup_event_data)
                     )
                     discord_updated = discord_result is not None
-                finally:
-                    loop.close()
+                except Exception as e:
+                    logger.error(f"❌ Discord event update failed: {str(e)}")
+                    discord_updated = False
             
             if result:
                 # Update stored info
