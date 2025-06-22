@@ -309,9 +309,17 @@ class ActionNetworkTeamUpDiscordSync:
             start_time = teamup_event_data['start_dt']
             end_time = teamup_event_data.get('end_dt', start_time)
             
-            # Create Discord event description
+            # Create Discord event description (Discord doesn't support HTML)
             description = an_event.get('description', '')
             registration_url = an_event.get('browser_url', '')
+            
+            # Strip HTML tags from description for Discord
+            import re
+            if description:
+                # Remove HTML tags
+                description = re.sub(r'<[^>]+>', '', description)
+                # Clean up extra whitespace
+                description = re.sub(r'\s+', ' ', description).strip()
             
             if registration_url:
                 if description:
@@ -370,9 +378,17 @@ class ActionNetworkTeamUpDiscordSync:
             start_time = teamup_event_data['start_dt']
             end_time = teamup_event_data.get('end_dt', start_time)
             
-            # Create Discord event description
+            # Create Discord event description (Discord doesn't support HTML)
             description = an_event.get('description', '')
             registration_url = an_event.get('browser_url', '')
+            
+            # Strip HTML tags from description for Discord
+            import re
+            if description:
+                # Remove HTML tags
+                description = re.sub(r'<[^>]+>', '', description)
+                # Clean up extra whitespace
+                description = re.sub(r'\s+', ' ', description).strip()
             
             if registration_url:
                 if description:
