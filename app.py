@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Action Network to Discord and Google Calendar Integration Service
-Dual sync: Action Network → Discord + Google Calendar
-Version 6.0 - Removed TeamUp, Google Calendar with hashtag routing
+Dual sync: Action Network → Discord + Google Calendar (Single Calendar)
+Version 7.0 - Simplified to single Google Calendar, no hashtag routing
 """
 
 from flask import Flask, request, jsonify
@@ -29,20 +29,14 @@ ACTION_NETWORK_API_KEY = os.environ.get('ACTION_NETWORK_API_KEY')
 DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
 DISCORD_GUILD_ID = int(os.environ.get('DISCORD_GUILD_ID', 0)) if os.environ.get('DISCORD_GUILD_ID') else None
 
-# Google Calendar configuration
+# Google Calendar configuration - now just one calendar
 GOOGLE_SERVICE_ACCOUNT_JSON = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
-GOOGLE_DSA_CALENDAR_ID = os.environ.get('GOOGLE_DSA_CALENDAR_ID')
-GOOGLE_DIRECT_ACTION_CALENDAR_ID = os.environ.get('GOOGLE_DIRECT_ACTION_CALENDAR_ID')
-GOOGLE_EDUCATION_CALENDAR_ID = os.environ.get('GOOGLE_EDUCATION_CALENDAR_ID')
-GOOGLE_OUTREACH_CALENDAR_ID = os.environ.get('GOOGLE_OUTREACH_CALENDAR_ID')
-GOOGLE_SOCIALS_CALENDAR_ID = os.environ.get('GOOGLE_SOCIALS_CALENDAR_ID')
-GOOGLE_STEERING_CALENDAR_ID = os.environ.get('GOOGLE_STEERING_CALENDAR_ID')
-GOOGLE_VOLUNTEERING_CALENDAR_ID = os.environ.get('GOOGLE_VOLUNTEERING_CALENDAR_ID')
+GOOGLE_CALENDAR_ID = os.environ.get('GOOGLE_CALENDAR_ID')  # Just one calendar ID needed
 
 ACTION_NETWORK_ORG = 'fhdsa'  # Your organization slug
 
 # In-memory storage for event mappings (in production, you'd use a database)
-# Format: {action_network_id: {'discord_id': '456', 'google_id': '789', 'google_calendar_id': 'cal@group...', 'last_modified': '2025-06-22T...', 'status': 'confirmed'}}
+# Format: {action_network_id: {'discord_id': '456', 'google_id': '789', 'last_modified': '2025-06-22T...', 'status': 'confirmed'}}
 event_mappings = {}
 
 class ActionNetworkGoogleDiscordSync:
@@ -80,31 +74,6 @@ class ActionNetworkGoogleDiscordSync:
         except Exception as e:
             logger.error(f"❌ Failed to initialize Google Calendar API: {str(e)}")
             return None
-    
-    def get_google_calendar_id(self, an_event):
-        """
-        Determine which Google Calendar to use based on hashtags in Action Network event description
-        """
-        description = an_event.get('description', '').lower()
-        
-        # Hashtag to calendar ID mapping
-        hashtag_mapping = {
-            '#dsa': GOOGLE_DSA_CALENDAR_ID,
-            '#action': GOOGLE_DIRECT_ACTION_CALENDAR_ID,
-            '#education': GOOGLE_EDUCATION_CALENDAR_ID,
-            '#outreach': GOOGLE_OUTREACH_CALENDAR_ID,
-            '#social': GOOGLE_SOCIALS_CALENDAR_ID,
-            '#steering': GOOGLE_STEERING_CALENDAR_ID,
-            '#volunteer': GOOGLE_VOLUNTEERING_CALENDAR_ID
-        }
-        
-        # Check for hashtags anywhere in description
-        for hashtag, calendar_id in hashtag_mapping.items():
-            if hashtag in description and calendar_id:
-                return hashtag, calendar_id
-        
-        # Default to DSA calendar if no hashtag found and it's configured
-        return 'none (defaulted to DSA)', GOOGLE_DSA_CALENDAR_ID if GOOGLE_DSA_CALENDAR_ID else None
     
     def fetch_action_network_events(self, limit=25):
         """
@@ -269,55 +238,37 @@ class ActionNetworkGoogleDiscordSync:
         """
         Create an event in Google Calendar
         """
-        if not self.google_service:
+        if not self.google_service or not GOOGLE_CALENDAR_ID:
             logger.warning("⚠️ Google Calendar not configured, skipping Google event creation")
-            return None, None
+            return None
         
         try:
-            # Determine which calendar to use
-            hashtag_used, calendar_id = self.get_google_calendar_id(an_event)
-            if not calendar_id:
-                logger.warning("⚠️ No Google Calendar ID found for event, skipping")
-                return None, None
-            
             # Transform to Google Calendar format
             google_event_data = self.transform_to_google_event(an_event)
             if not google_event_data:
-                return None, None
+                return None
             
             # Create the event
             result = self.google_service.events().insert(
-                calendarId=calendar_id,
+                calendarId=GOOGLE_CALENDAR_ID,
                 body=google_event_data
             ).execute()
             
             google_event_id = result['id']
             
-            # Log which calendar was used
-            calendar_names = {
-                GOOGLE_DSA_CALENDAR_ID: "Flint Hills Chapter DSA",
-                GOOGLE_DIRECT_ACTION_CALENDAR_ID: "Direct Action",
-                GOOGLE_EDUCATION_CALENDAR_ID: "Education",
-                GOOGLE_OUTREACH_CALENDAR_ID: "Outreach",
-                GOOGLE_SOCIALS_CALENDAR_ID: "Socials",
-                GOOGLE_STEERING_CALENDAR_ID: "Steering Committee",
-                GOOGLE_VOLUNTEERING_CALENDAR_ID: "Volunteering and Mutual Aid"
-            }
+            logger.info(f"📅 Created Google Calendar event: {google_event_data['summary']}")
             
-            calendar_name = calendar_names.get(calendar_id, "Unknown Calendar")
-            logger.info(f"📅 Created Google Calendar event: {google_event_data['summary']} → {calendar_name} (hashtag: {hashtag_used})")
-            
-            return google_event_id, calendar_id
+            return google_event_id
             
         except Exception as e:
             logger.error(f"❌ Error creating Google Calendar event: {str(e)}")
-            return None, None
+            return None
     
-    def update_google_event(self, google_event_id, calendar_id, an_event):
+    def update_google_event(self, google_event_id, an_event):
         """
         Update an existing event in Google Calendar
         """
-        if not self.google_service:
+        if not self.google_service or not GOOGLE_CALENDAR_ID:
             return None
         
         try:
@@ -328,7 +279,7 @@ class ActionNetworkGoogleDiscordSync:
             
             # Update the event
             result = self.google_service.events().update(
-                calendarId=calendar_id,
+                calendarId=GOOGLE_CALENDAR_ID,
                 eventId=google_event_id,
                 body=google_event_data
             ).execute()
@@ -340,16 +291,16 @@ class ActionNetworkGoogleDiscordSync:
             logger.error(f"❌ Error updating Google Calendar event: {str(e)}")
             return None
     
-    def delete_google_event(self, google_event_id, calendar_id):
+    def delete_google_event(self, google_event_id):
         """
         Delete an event from Google Calendar
         """
-        if not self.google_service:
+        if not self.google_service or not GOOGLE_CALENDAR_ID:
             return False
         
         try:
             self.google_service.events().delete(
-                calendarId=calendar_id,
+                calendarId=GOOGLE_CALENDAR_ID,
                 eventId=google_event_id
             ).execute()
             
@@ -579,7 +530,6 @@ class ActionNetworkGoogleDiscordSync:
                         stored_info = event_mappings[event_id]
                         discord_event_id = stored_info.get('discord_id')
                         google_event_id = stored_info.get('google_id')
-                        google_calendar_id = stored_info.get('google_calendar_id')
                         
                         # Delete from Discord
                         if discord_event_id:
@@ -587,8 +537,8 @@ class ActionNetworkGoogleDiscordSync:
                             deleted_events_count += 1
                         
                         # Delete from Google Calendar
-                        if google_event_id and google_calendar_id:
-                            if self.delete_google_event(google_event_id, google_calendar_id):
+                        if google_event_id:
+                            if self.delete_google_event(google_event_id):
                                 deleted_events_count += 1
                         
                         del event_mappings[event_id]
@@ -601,7 +551,7 @@ class ActionNetworkGoogleDiscordSync:
                 # Check if this is a new event or needs updating
                 if event_id not in event_mappings:
                     # New event - create in Google Calendar and Discord
-                    google_event_id, google_calendar_id = self.create_google_event(an_event)
+                    google_event_id = self.create_google_event(an_event)
                     
                     if google_event_id:
                         # Get the Google event data for Discord
@@ -613,7 +563,6 @@ class ActionNetworkGoogleDiscordSync:
                         event_mappings[event_id] = {
                             'discord_id': discord_event_id,
                             'google_id': google_event_id,
-                            'google_calendar_id': google_calendar_id,
                             'last_modified': modified_date,
                             'status': status,
                             'title': title,
@@ -622,7 +571,6 @@ class ActionNetworkGoogleDiscordSync:
                         new_events_count += 1
                         
                         # Log creation
-                        hashtag_used, _ = self.get_google_calendar_id(an_event)
                         sync_status = []
                         if discord_event_id:
                             sync_status.append("Discord")
@@ -630,7 +578,7 @@ class ActionNetworkGoogleDiscordSync:
                             sync_status.append("Google Calendar")
                         
                         sync_status_str = " → " + " + ".join(sync_status) if sync_status else ""
-                        logger.info(f"📅 NEW: '{title}' (ID: {event_id}) (hashtag: {hashtag_used}){sync_status_str}")
+                        logger.info(f"📅 NEW: '{title}' (ID: {event_id}){sync_status_str}")
                     else:
                         logger.error(f"❌ Failed to create event: {title}")
                 
@@ -660,10 +608,9 @@ class ActionNetworkGoogleDiscordSync:
                             updated_platforms = []
                             
                             # Update Google Calendar
-                            if stored_info.get('google_id') and stored_info.get('google_calendar_id'):
+                            if stored_info.get('google_id'):
                                 google_result = self.update_google_event(
                                     stored_info['google_id'], 
-                                    stored_info['google_calendar_id'], 
                                     an_event
                                 )
                                 if google_result:
@@ -764,36 +711,25 @@ def home():
     Home page - shows service status
     """
     discord_configured = bool(DISCORD_BOT_TOKEN and DISCORD_GUILD_ID)
-    google_configured = bool(GOOGLE_SERVICE_ACCOUNT_JSON)
+    google_configured = bool(GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_CALENDAR_ID)
     
     return jsonify({
         'service': 'Action Network to Discord and Google Calendar Integration',
         'status': 'running',
-        'mode': 'Dual Sync',
+        'mode': 'Dual Sync - Single Calendar',
         'sync_interval': '30 minutes',
         'features': [
             'Creates events in Discord and Google Calendar',
             'Updates modified events in both platforms', 
             'Deletes cancelled events from both platforms',
-            'Hashtag-based calendar routing for Google Calendar',
             'Registration links in descriptions',
-            'Discord scheduled events'
+            'Discord scheduled events',
+            'Single unified calendar'
         ],
         'platforms': {
             'action_network': 'source',
             'discord': 'events sync' if discord_configured else 'not configured',
             'google_calendar': 'calendar sync' if google_configured else 'not configured'
-        },
-        'hashtag_mapping': {
-            'google_calendars': {
-                '#dsa': 'Flint Hills Chapter DSA',
-                '#action': 'Direct Action',
-                '#education': 'Education',
-                '#outreach': 'Outreach',
-                '#social': 'Socials',
-                '#steering': 'Steering Committee',
-                '#volunteer': 'Volunteering and Mutual Aid'
-            }
         },
         'endpoints': {
             'health': '/health',
@@ -812,7 +748,7 @@ def health_check():
     """
     action_network_configured = bool(ACTION_NETWORK_API_KEY)
     discord_configured = bool(DISCORD_BOT_TOKEN and DISCORD_GUILD_ID)
-    google_configured = bool(GOOGLE_SERVICE_ACCOUNT_JSON)
+    google_configured = bool(GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_CALENDAR_ID)
     
     action_network_connection = False
     discord_connection = False
@@ -872,7 +808,7 @@ def manual_sync():
         platforms = []
         if DISCORD_BOT_TOKEN and DISCORD_GUILD_ID:
             platforms.append('Discord')
-        if GOOGLE_SERVICE_ACCOUNT_JSON:
+        if GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_CALENDAR_ID:
             platforms.append('Google Calendar')
         
         return jsonify({
@@ -898,7 +834,7 @@ def sync_status():
     platforms = []
     if DISCORD_BOT_TOKEN and DISCORD_GUILD_ID:
         platforms.append('Discord')
-    if GOOGLE_SERVICE_ACCOUNT_JSON:
+    if GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_CALENDAR_ID:
         platforms.append('Google Calendar')
     
     return jsonify({
@@ -965,10 +901,9 @@ def force_update_event(event_id):
             updated_platforms = []
             
             # Update Google Calendar
-            if stored_info.get('google_id') and stored_info.get('google_calendar_id'):
+            if stored_info.get('google_id'):
                 google_result = sync_service.update_google_event(
                     stored_info['google_id'], 
-                    stored_info['google_calendar_id'], 
                     target_event
                 )
                 if google_result:
@@ -1043,7 +978,6 @@ def debug_mappings():
         detailed_mappings[an_id] = {
             'discord_id': mapping.get('discord_id'),
             'google_id': mapping.get('google_id'),
-            'google_calendar_id': mapping.get('google_calendar_id'),
             'last_modified': mapping['last_modified'],
             'status': mapping['status'],
             'title': mapping.get('title', 'Unknown'),
@@ -1121,13 +1055,16 @@ if __name__ == '__main__':
     if not GOOGLE_SERVICE_ACCOUNT_JSON:
         logger.warning("⚠️  Google Calendar service account not configured!")
     
+    if not GOOGLE_CALENDAR_ID:
+        logger.warning("⚠️  Google Calendar ID not configured!")
+    
     logger.info(f"🚀 Starting Action Network Dual-Platform Sync Service on port {port}")
     logger.info(f"📡 Manual sync endpoint: /sync")
     logger.info(f"❤️  Health check: /health")
     logger.info(f"📊 Status endpoint: /status")
     logger.info(f"🔗 Mappings endpoint: /mappings")
     logger.info(f"🎮 Discord integration: {'enabled' if DISCORD_BOT_TOKEN and DISCORD_GUILD_ID else 'disabled'}")
-    logger.info(f"📅 Google Calendar integration: {'enabled' if GOOGLE_SERVICE_ACCOUNT_JSON else 'disabled'}")
+    logger.info(f"📅 Google Calendar integration: {'enabled' if GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_CALENDAR_ID else 'disabled'}")
     logger.info(f"🐛 Debug endpoint: /debug/action-network")
     
     app.run(host='0.0.0.0', port=port, debug=False)
