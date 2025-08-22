@@ -57,8 +57,31 @@ class ActionNetworkGoogleDiscordSync:
             return None
         
         try:
+            # Debug: Show what we're actually trying to parse
+            json_str = GOOGLE_SERVICE_ACCOUNT_JSON.strip()
+            logger.info(f"🔍 JSON string length: {len(json_str)}")
+            logger.info(f"🔍 JSON starts with: {repr(json_str[:50])}")
+            logger.info(f"🔍 JSON ends with: {repr(json_str[-50:])}")
+            
+            # Try to clean up common issues
+            json_str = json_str.strip()
+            
+            # Remove any BOM or weird characters at the beginning
+            if json_str.startswith('\ufeff'):
+                json_str = json_str[1:]
+                logger.info("🔧 Removed BOM character")
+            
+            # Make sure it starts with { and ends with }
+            if not json_str.startswith('{'):
+                logger.error(f"❌ JSON doesn't start with '{{', starts with: {repr(json_str[:10])}")
+                return None
+            
+            if not json_str.endswith('}'):
+                logger.error(f"❌ JSON doesn't end with '}}', ends with: {repr(json_str[-10:])}")
+                return None
+            
             # Parse the JSON credentials
-            credentials_info = json.loads(GOOGLE_SERVICE_ACCOUNT_JSON)
+            credentials_info = json.loads(json_str)
             
             # Create credentials from service account info
             credentials = service_account.Credentials.from_service_account_info(
@@ -71,6 +94,10 @@ class ActionNetworkGoogleDiscordSync:
             logger.info("✅ Google Calendar API initialized")
             return service
             
+        except json.JSONDecodeError as e:
+            logger.error(f"❌ JSON parsing error: {str(e)}")
+            logger.error(f"❌ JSON content around error: {repr(json_str[max(0, e.pos-20):e.pos+20])}")
+            return None
         except Exception as e:
             logger.error(f"❌ Failed to initialize Google Calendar API: {str(e)}")
             return None
