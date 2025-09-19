@@ -271,25 +271,29 @@ class ActionNetworkTeamUpDiscordSync:
             return None
     
     def update_teamup_event(self, teamup_event_id, event_data):
-        """
-        Update an existing event in TeamUp Calendar
-        """
-        try:
-            url = f"{self.teamup_base_url}/events/{teamup_event_id}"
-            
-            response = requests.put(url, headers=self.teamup_headers, json=event_data)
-            
-            if response.status_code == 200:
-                result = response.json()
-                logger.info(f"✅ Updated TeamUp event: {event_data.get('title', 'No title')}")
-                return result
-            else:
-                logger.error(f"❌ Failed to update TeamUp event: {response.status_code} - {response.text}")
-                return None
-                
-        except Exception as e:
-            logger.error(f"❌ Error updating TeamUp event: {str(e)}")
+    """
+    Update an existing event in TeamUp Calendar
+    """
+    try:
+        url = f"{self.teamup_base_url}/events/{teamup_event_id}"
+        
+        # Add the ID to the payload - this is what was missing!
+        event_data_with_id = event_data.copy()
+        event_data_with_id['id'] = teamup_event_id
+        
+        response = requests.put(url, headers=self.teamup_headers, json=event_data_with_id)
+        
+        if response.status_code == 200:
+            result = response.json()
+            logger.info(f"✅ Updated TeamUp event: {event_data.get('title', 'No title')}")
+            return result
+        else:
+            logger.error(f"❌ Failed to update TeamUp event: {response.status_code} - {response.text}")
             return None
+            
+    except Exception as e:
+        logger.error(f"❌ Error updating TeamUp event: {str(e)}")
+        return None
     
     def delete_teamup_event(self, teamup_event_id):
         """
