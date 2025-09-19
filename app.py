@@ -14,6 +14,7 @@ import logging
 import threading
 import time
 import pytz
+import re
 
 
 def clean_description_for_display(description):
@@ -128,7 +129,7 @@ class ActionNetworkTeamUpDiscordSync:
                     # Use HTML link format
                     enhanced_description += f'\n\n<a href="{registration_url}" target="_blank">RSVP</a>'
                 else:
-                    enhanced_description = f'<a href="{registration_url}" target="_blank">RSVPe</a>'
+                    enhanced_description = f'<a href="{registration_url}" target="_blank">RSVP</a>'
             
             # Handle start/end times with timezone conversion
             start_date = None
@@ -338,9 +339,9 @@ class ActionNetworkTeamUpDiscordSync:
             
             if registration_url:
                 if description:
-                    description += f"\n\nRegister: {registration_url}"
+                    description += f"\n\nRSVP: {registration_url}"
                 else:
-                    description = f"Register: {registration_url}"
+                    description = f"RSVP: {registration_url}"
             
             # Limit description to Discord's 1000 character limit
             if len(description) > 1000:
@@ -408,9 +409,9 @@ class ActionNetworkTeamUpDiscordSync:
             
             if registration_url:
                 if description:
-                    description += f"\n\nRegister: {registration_url}"
+                    description += f"\n\nRSVP: {registration_url}"
                 else:
-                    description = f"Register: {registration_url}"
+                    description = f"RSVP: {registration_url}"
             
             # Limit description to Discord's 1000 character limit
             if len(description) > 1000:
