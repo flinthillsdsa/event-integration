@@ -276,8 +276,8 @@ class ActionNetworkTeamUpDiscordSync:
         """
         try:
             url = f"{self.teamup_base_url}/events/{teamup_event_id}"
-        
-            # Add the ID to the payload - this is what was missing!
+            
+            # Add the ID to the payload - this fixes the "id missing" error
             event_data_with_id = event_data.copy()
             event_data_with_id['id'] = teamup_event_id
             
@@ -290,10 +290,10 @@ class ActionNetworkTeamUpDiscordSync:
             else:
                 logger.error(f"❌ Failed to update TeamUp event: {response.status_code} - {response.text}")
                 return None
-            
-    except Exception as e:
-        logger.error(f"❌ Error updating TeamUp event: {str(e)}")
-        return None
+                
+        except Exception as e:
+            logger.error(f"❌ Error updating TeamUp event: {str(e)}")
+            return None
     
     def delete_teamup_event(self, teamup_event_id):
         """
