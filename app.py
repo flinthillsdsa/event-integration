@@ -15,6 +15,20 @@ import threading
 import time
 import pytz
 
+
+def clean_description_for_display(description):
+    """Remove hashtags from description for display purposes"""
+    if not description:
+        return description
+    
+    # Remove hashtags (# followed by word characters)
+    cleaned = re.sub(r'#\w+', '', description)
+    
+    # Clean up extra whitespace
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    
+    return cleaned
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -103,7 +117,8 @@ class ActionNetworkTeamUpDiscordSync:
         """
         try:
             title = an_event.get('title', 'Untitled Event')
-            description = an_event.get('description', '')
+            original_description = an_event.get('description', '')
+            description = clean_description_for_display(original_description)
             registration_url = an_event.get('browser_url', '')
             
             # Create enhanced description with registration link
@@ -111,9 +126,9 @@ class ActionNetworkTeamUpDiscordSync:
             if registration_url:
                 if description:
                     # Use HTML link format
-                    enhanced_description += f'\n\n<a href="{registration_url}" target="_blank">Register here</a>'
+                    enhanced_description += f'\n\n<a href="{registration_url}" target="_blank">RSVP</a>'
                 else:
-                    enhanced_description = f'<a href="{registration_url}" target="_blank">Register here</a>'
+                    enhanced_description = f'<a href="{registration_url}" target="_blank">RSVPe</a>'
             
             # Handle start/end times with timezone conversion
             start_date = None
@@ -309,7 +324,8 @@ class ActionNetworkTeamUpDiscordSync:
             end_time = teamup_event_data.get('end_dt', start_time)
             
             # Create Discord event description (Discord doesn't support HTML)
-            description = an_event.get('description', '')
+            original_description = an_event.get('description', '')
+            description = clean_description_for_display(original_description)
             registration_url = an_event.get('browser_url', '')
             
             # Strip HTML tags from description for Discord
@@ -378,7 +394,8 @@ class ActionNetworkTeamUpDiscordSync:
             end_time = teamup_event_data.get('end_dt', start_time)
             
             # Create Discord event description (Discord doesn't support HTML)
-            description = an_event.get('description', '')
+            original_description = an_event.get('description', '')
+            description = clean_description_for_display(original_description)
             registration_url = an_event.get('browser_url', '')
             
             # Strip HTML tags from description for Discord
