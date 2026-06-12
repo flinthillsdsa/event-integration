@@ -54,7 +54,9 @@ class Config:
 
 
 def _require_env(name: str) -> str:
-    value = os.environ.get(name)
+    # Strip whitespace/newlines: secrets are often pasted with a trailing
+    # newline, which would corrupt request headers (e.g. 'Bot <token>\n').
+    value = (os.environ.get(name) or "").strip()
     if not value:
         raise ConfigError(
             f"Required secret '{name}' is missing. Set it as an environment "
@@ -103,7 +105,7 @@ def load_config(config_path: Path | None = None) -> Config:
     discord = DiscordConfig(
         enabled=discord_enabled,
         guild_id=str(discord_raw["guild_id"]) if discord_raw.get("guild_id") else None,
-        bot_token=os.environ.get("DISCORD_BOT_TOKEN"),
+        bot_token=(os.environ.get("DISCORD_BOT_TOKEN") or "").strip() or None,
     )
     if discord.enabled:
         if not discord.guild_id:
