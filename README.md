@@ -78,12 +78,15 @@ descriptions — no special tag setup is required.
 
 ### 3. Discord bot (optional — already enabled in `config.yml`)
 
-1. <https://discord.com/developers/applications> → **New Application**.
-2. **Bot → Add Bot.** Under **Token**, click **Reset Token** and copy it. **This
-   is a secret.**
-3. Invite the bot to the server with the **Manage Events** permission. Build an
-   invite URL under **OAuth2 → URL Generator**: scope `bot`, permission
-   **Manage Events**, open the URL, pick the server, authorize.
+1. <https://discord.com/developers/applications> → **New Application** (a bot
+   user is included automatically — there is no separate "Add Bot" step).
+2. Open the **Bot** tab and click **Reset Token**, confirm, then copy the token
+   it reveals. **This is a secret**, and Discord shows it only once — if you lose
+   it, just Reset Token again to get a new one.
+3. Invite the bot to the server with the **Manage Events** permission. Under
+   **OAuth2 → URL Generator**, check scope `bot`, then in the Permissions menu
+   that appears check **Manage Events**. Open the generated URL at the bottom,
+   pick the server, and authorize.
 4. The server (guild) ID is already in `config.yml`
    (`1100839736991555665`). To get a guild ID yourself: enable **Developer
    Mode** in Discord (User Settings → Advanced), right-click the server →
