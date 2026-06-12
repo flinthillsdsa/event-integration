@@ -39,20 +39,31 @@ never into the code.
 
 ### 1. Google Cloud service account (for Google Calendar)
 
-1. Go to <https://console.cloud.google.com/> and create a project (e.g.
-   "fhdsa-calendar-sync").
-2. In **APIs & Services → Library**, search for **Google Calendar API** and
-   click **Enable**.
-3. In **APIs & Services → Credentials → Create credentials → Service account**.
-   Give it a name and create it. No roles are needed.
-4. Open the service account → **Keys → Add key → Create new key → JSON**. A
-   `.json` file downloads. **This is a secret** — keep it safe, never commit it.
-5. Copy the service account's email address (looks like
-   `something@your-project.iam.gserviceaccount.com`).
-6. **Share each calendar with that email.** In Google Calendar, for every
-   calendar in the table above: **Settings → Share with specific people → Add
-   people → paste the service account email →** permission **"Make changes to
-   events" → Send.** Without this the sync cannot write to the calendar.
+A service account already exists for this project — you only need a JSON **key**
+for it and to share the calendars with it:
+
+> **Service account:** `action-network-sync@strategic-crow-466420-a9.iam.gserviceaccount.com`
+> (Google Cloud project `strategic-crow-466420-a9`)
+
+1. Go to <https://console.cloud.google.com/> and select project
+   **`strategic-crow-466420-a9`**.
+2. In **APIs & Services → Library**, confirm **Google Calendar API** shows
+   **Enabled** (enable it if not).
+3. In **APIs & Services → Credentials**, open the **action-network-sync**
+   service account → **Keys → Add key → Create new key → JSON**. A `.json` file
+   downloads. **This is a secret** — keep it safe, never commit it. (If a key was
+   downloaded previously and you still have it, reuse that instead of making a
+   new one.)
+4. **Share each calendar with the service account email above.** In Google
+   Calendar, for every calendar in the table above: **Settings → Share with
+   specific people → Add people → paste
+   `action-network-sync@strategic-crow-466420-a9.iam.gserviceaccount.com` →**
+   permission **"Make changes to events" → Send.** Without this the sync cannot
+   write to the calendar.
+
+> Setting up from scratch in a different project instead? Create a service
+> account (no roles needed), enable the Google Calendar API, download a JSON key,
+> and share each calendar with the new account's email the same way.
 
 > To find a Calendar ID: Google Calendar → Settings → pick the calendar →
 > *Integrate calendar* → *Calendar ID*. These are already filled into
