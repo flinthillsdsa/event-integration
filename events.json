@@ -1,7 +1,7 @@
 {
   "version": 1,
   "timezone": "America/Chicago",
-  "windowDays": 60,
+  "windowDays": 120,
   "committees": [
     {
       "name": "Meetings",
@@ -76,6 +76,123 @@
       "url": "https://fhdsa.org/about/governance/chapter-bylaws/",
       "committee": "Meetings",
       "color": "#616161",
+      "source": "chapter"
+    },
+    {
+      "id": "3b0fioan1nd389svsg01ci0flu_20260921T230000Z",
+      "title": "Comrade Club",
+      "start": "2026-09-21T18:00:00-05:00",
+      "end": "2026-09-21T20:00:00-05:00",
+      "allDay": false,
+      "location": "629 Poyntz Ave, Manhattan, KS 66502",
+      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
+      "url": null,
+      "committee": "Social",
+      "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
+      "id": "5c3nfgc5ncmus72or5mdepsfg4_20260928T230000Z",
+      "title": "Monthly Steering Committee Meeting",
+      "start": "2026-09-28T18:00:00-05:00",
+      "end": "2026-09-28T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to Steering Commiteee",
+      "description": "This is the monthly meeting for the Flint Hills DSA Steering Committee. It is open to all members of the Flint Hills Chapter of DSA. For location details, contact the Steering Committee (chapter@fhdsa.org).\n\nIf you need any accommodations to fully participate, please reach out to events@fhdsa.org and let us know so we can make proper arrangements. All Flint Hills DSA events are fragrance- and nut-free.",
+      "url": null,
+      "committee": "Meetings",
+      "color": "#616161",
+      "source": "chapter"
+    },
+    {
+      "id": "3b0fioan1nd389svsg01ci0flu_20261005T230000Z",
+      "title": "Comrade Club",
+      "start": "2026-10-05T18:00:00-05:00",
+      "end": "2026-10-05T20:00:00-05:00",
+      "allDay": false,
+      "location": "629 Poyntz Ave, Manhattan, KS 66502",
+      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
+      "url": null,
+      "committee": "Social",
+      "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
+      "id": "30p1b6uthbd4hm7b4tml1tr5rb_20261012T230000Z",
+      "title": "Chapter General Body Meeting",
+      "start": "2026-10-12T18:00:00-05:00",
+      "end": "2026-10-12T20:00:00-05:00",
+      "allDay": false,
+      "location": "TBA",
+      "description": "General Body Meetings of the Flint Hills, Kansas Chapter of Democratic Socialists of America are open to anyone who is willing to uphold the <a href=\"https://fhdsa.org/about/governance/chapter-bylaws/\" target=\"_blank\"><u>Chapter Bylaws</u></a>. Only Members-in-good-standing are able to vote on official business, but we welcome input from everyone in attendance.<br><br>Please navigate to the folder with the date of the meeting to view the <a href=\"https://drive.google.com/drive/folders/1Sntm6qf-8whY05QwnxlwBkrU1yW8lyhN?usp=sharing\" target=\"_blank\" class=\"pastedDriveLink-0\"><u>meeting agenda</u…",
+      "url": "https://fhdsa.org/about/governance/chapter-bylaws/",
+      "committee": "Meetings",
+      "color": "#616161",
+      "source": "chapter"
+    },
+    {
+      "id": "3b0fioan1nd389svsg01ci0flu_20261019T230000Z",
+      "title": "Comrade Club",
+      "start": "2026-10-19T18:00:00-05:00",
+      "end": "2026-10-19T20:00:00-05:00",
+      "allDay": false,
+      "location": "629 Poyntz Ave, Manhattan, KS 66502",
+      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
+      "url": null,
+      "committee": "Social",
+      "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
+      "id": "5c3nfgc5ncmus72or5mdepsfg4_20261026T230000Z",
+      "title": "Monthly Steering Committee Meeting",
+      "start": "2026-10-26T18:00:00-05:00",
+      "end": "2026-10-26T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to Steering Commiteee",
+      "description": "This is the monthly meeting for the Flint Hills DSA Steering Committee. It is open to all members of the Flint Hills Chapter of DSA. For location details, contact the Steering Committee (chapter@fhdsa.org).\n\nIf you need any accommodations to fully participate, please reach out to events@fhdsa.org and let us know so we can make proper arrangements. All Flint Hills DSA events are fragrance- and nut-free.",
+      "url": null,
+      "committee": "Meetings",
+      "color": "#616161",
+      "source": "chapter"
+    },
+    {
+      "id": "3b0fioan1nd389svsg01ci0flu_20261103T000000Z",
+      "title": "Comrade Club",
+      "start": "2026-11-02T18:00:00-06:00",
+      "end": "2026-11-02T20:00:00-06:00",
+      "allDay": false,
+      "location": "629 Poyntz Ave, Manhattan, KS 66502",
+      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
+      "url": null,
+      "committee": "Social",
+      "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
+      "id": "30p1b6uthbd4hm7b4tml1tr5rb_20261110T000000Z",
+      "title": "Chapter General Body Meeting",
+      "start": "2026-11-09T18:00:00-06:00",
+      "end": "2026-11-09T20:00:00-06:00",
+      "allDay": false,
+      "location": "TBA",
+      "description": "General Body Meetings of the Flint Hills, Kansas Chapter of Democratic Socialists of America are open to anyone who is willing to uphold the <a href=\"https://fhdsa.org/about/governance/chapter-bylaws/\" target=\"_blank\"><u>Chapter Bylaws</u></a>. Only Members-in-good-standing are able to vote on official business, but we welcome input from everyone in attendance.<br><br>Please navigate to the folder with the date of the meeting to view the <a href=\"https://drive.google.com/drive/folders/1Sntm6qf-8whY05QwnxlwBkrU1yW8lyhN?usp=sharing\" target=\"_blank\" class=\"pastedDriveLink-0\"><u>meeting agenda</u…",
+      "url": "https://fhdsa.org/about/governance/chapter-bylaws/",
+      "committee": "Meetings",
+      "color": "#616161",
+      "source": "chapter"
+    },
+    {
+      "id": "3b0fioan1nd389svsg01ci0flu_20261117T000000Z",
+      "title": "Comrade Club",
+      "start": "2026-11-16T18:00:00-06:00",
+      "end": "2026-11-16T20:00:00-06:00",
+      "allDay": false,
+      "location": "629 Poyntz Ave, Manhattan, KS 66502",
+      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
+      "url": null,
+      "committee": "Social",
+      "color": "#e67c73",
       "source": "chapter"
     }
   ]
