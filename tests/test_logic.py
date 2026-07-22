@@ -420,6 +420,55 @@ class TestWebsiteSourceSelection(unittest.TestCase):
                          ("chapter", "national"))
 
 
+class TestNamedFilters(unittest.TestCase):
+    """Distant chapters are filtered to things a Flint Hills member could join."""
+
+    def _event(self, title, description="", location=""):
+        start = dt.datetime(2026, 9, 1, 18, 0, tzinfo=CHICAGO)
+        return NormalizedEvent(
+            uid="u", title=title, description=description, location=location,
+            start=start, end=start + dt.timedelta(hours=1), url=None, source="Chicago DSA",
+        )
+
+    def _filtered_source(self):
+        sources = {s.name: s for s in load_sources()}
+        return sources["Chicago DSA"]
+
+    def test_the_filter_is_resolved_from_the_named_set(self):
+        source = self._filtered_source()
+        self.assertIn("zoom.us", source.include)
+        self.assertIn("working group", source.exclude)
+
+    def test_a_zoom_link_in_the_location_field_counts(self):
+        # The whole point of matching location: that is where Zoom links live.
+        event = self._event("Socialist Night School", location="https://zoom.us/j/123")
+        self.assertTrue(event.matches_filters(self._filtered_source()))
+
+    def test_an_in_person_only_event_is_dropped(self):
+        event = self._event("Rally at City Hall", location="City Hall, Chicago")
+        self.assertFalse(event.matches_filters(self._filtered_source()))
+
+    def test_a_remote_internal_meeting_is_still_dropped(self):
+        event = self._event("AgitProp Operations Meeting", location="https://zoom.us/j/9")
+        self.assertFalse(event.matches_filters(self._filtered_source()))
+
+    def test_kansas_neighbours_are_not_filtered(self):
+        lawrence = {s.name: s for s in load_sources()}["Lawrence DSA"]
+        self.assertEqual(lawrence.include, ())
+        event = self._event("Electoral Committee", location="Lawrence Public Library")
+        self.assertTrue(event.matches_filters(lawrence))
+
+    def test_unknown_filter_name_is_rejected(self):
+        import tempfile
+        from src.config import ConfigError
+
+        with tempfile.NamedTemporaryFile("w", suffix=".yml", delete=False) as fh:
+            fh.write("sources:\n  - name: X\n    type: gcal\n    url: y\n    filter: nope\n")
+            path = Path(fh.name)
+        with self.assertRaises(ConfigError):
+            load_sources(path)
+
+
 class TestShippedConfig(unittest.TestCase):
     """The committed YAML must stay loadable and internally consistent."""
 

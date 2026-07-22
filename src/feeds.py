@@ -42,7 +42,10 @@ class NormalizedEvent:
     region: str | None = None
 
     def matches_filters(self, source: Source) -> bool:
-        haystack = f"{self.title}\n{self.description}".lower()
+        # Location matters as much as the text: a Zoom or Meet link is usually
+        # the only signal that an event is attendable from another chapter, and
+        # it lives in the location field, not the description.
+        haystack = f"{self.title}\n{self.description}\n{self.location}".lower()
         if source.include and not any(k in haystack for k in source.include):
             return False
         if source.exclude and any(k in haystack for k in source.exclude):
