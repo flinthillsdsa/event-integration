@@ -1,0 +1,95 @@
+# Flint Hills DSA event integration -- non-secret configuration.
+#
+# Secrets are NOT here. The Google service account JSON comes from the
+# GOOGLE_SERVICE_ACCOUNT_JSON environment variable / GitHub Actions Secret.
+# For local runs you may instead set GOOGLE_SERVICE_ACCOUNT_FILE to a path.
+
+calendars:
+  # The single chapter calendar. Organizers create events in Discord; the
+  # Chronicle bot mirrors them here. Read-only for this repo.
+  chapter: "flinthillsdsa@gmail.com"
+
+  # The aggregator's output calendar. Humans never edit this one. The service
+  # account needs "Make changes to events" on it.
+  national: "bfc7529532e79727b8fdfaf1e086d7d67241ef281274334a604f93673d663f8b@group.calendar.google.com"
+
+# Timezone the chapter authors events in. Used for all-day handling and for
+# any event a feed hands us without zone information.
+timezone: "America/Chicago"
+
+aggregator:
+  # How far forward to pull events from national/regional feeds, and the window
+  # in which the aggregator is allowed to reconcile (i.e. delete stale events it
+  # previously created). Events outside this window are never touched.
+  horizon_days: 180
+  # Ignore anything that started more than this many days ago.
+  past_window_days: 1
+  # Used when a source event has no end time.
+  default_duration_minutes: 120
+
+events_json:
+  # Forward window for the website feed.
+  window_days: 60
+  # Where the generated file is written, relative to the repo root. This is the
+  # GitHub Pages root, so it publishes to
+  # https://flinthillsdsa.github.io/event-integration/events.json
+  output_path: "events.json"
+  # Description text is passed through to the site; cap its length.
+  max_description_chars: 600
+
+# Committee map. Everything here is data -- edit freely.
+#
+#   tags     -- leading bracket tag in the event title, e.g. "[Housing] Kickoff".
+#               Matched case-insensitively. First tag listed is the canonical one.
+#   keywords -- best-effort fallback when the title carries no bracket tag.
+#               Matched case-insensitively against the whole title.
+#   color    -- badge hex used on the website cards.
+#
+# Order matters: keyword fallback checks committees top to bottom and takes the
+# first hit. Anything unmatched becomes "General".
+committees:
+  - name: "CIVIC"
+    tags: ["CIVIC"]
+    color: "#2952a3"
+    keywords: ["civic", "voter", "canvass", "ballot", "election"]
+
+  - name: "Housing Justice and Tenant Organizing"
+    tags: ["Housing", "HJTO"]
+    color: "#0b8043"
+    keywords: ["tenant", "housing", "renter", "eviction", "landlord"]
+
+  - name: "Meetings"
+    tags: ["Meeting", "Meetings"]
+    color: "#616161"
+    keywords: ["general body", "steering committee", "chapter meeting", "convention"]
+
+  - name: "Outreach"
+    tags: ["Outreach"]
+    color: "#f09300"
+    keywords: ["tabling", "outreach", "fair", "recruitment", "orientation"]
+
+  - name: "Political Action"
+    tags: ["PolAction", "Action"]
+    color: "#d50000"
+    keywords: ["rally", "protest", "march", "picket", "direct action", "phonebank"]
+
+  - name: "Political Education"
+    tags: ["PolEd", "Education"]
+    color: "#8e24aa"
+    keywords: ["reading", "education", "study", "school", "book club", "teach-in"]
+
+  - name: "Social"
+    tags: ["Social"]
+    color: "#e67c73"
+    keywords: ["comrade club", "social", "happy hour", "potluck", "picnic", "game night"]
+
+# Committee assigned to events with no tag and no keyword hit.
+default_committee:
+  name: "General"
+  color: "#546e7a"
+
+# Committee label applied to everything on the National / Regional calendar.
+# These events are additionally marked with source = "national".
+national_committee:
+  name: "National"
+  color: "#ec1f27"

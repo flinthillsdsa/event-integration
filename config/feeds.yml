@@ -1,0 +1,58 @@
+# National / regional event sources for the aggregator.
+#
+# Each source:
+#   name     -- short label. Stored on every event we create
+#                (extendedProperties.private.sourceName) and used for logging.
+#                CHANGING A NAME ORPHANS THAT SOURCE'S EXISTING EVENTS -- they
+#                will be deleted and recreated on the next run. Rename sparingly.
+#   type     -- "ical" (any .ics URL) or "gcal" (public Google Calendar ID)
+#   url      -- the .ics URL, or the calendar ID for type: gcal
+#   enabled  -- false parks a source without deleting the entry. Note: disabling
+#               a source removes its events from the calendar on the next run.
+#   region   -- free-text tag appended to the event description ("National",
+#               "Kansas", "Midwest", ...). Optional.
+#   include  -- optional list of keywords; if present, an event is kept only if
+#               its title or description contains at least one.
+#   exclude  -- optional list of keywords; an event is dropped if its title or
+#               description contains any.
+#
+# Where to find more feeds:
+#   * Most DSA chapter sites run WordPress + The Events Calendar, which exposes
+#     an iCal feed at  https://<chapter-site>/events/?ical=1  (older installs:
+#     .../events/?tribe_display=list&ical=1). Use type: ical.
+#   * National committee and working-group calendars are usually public Google
+#     Calendars. Grab the calendar ID from the embed code (the src= parameter,
+#     base64-decoded) or from "Integrate calendar" in calendar settings, and use
+#     type: gcal. A public .ics URL for the same calendar also works as ical.
+
+sources:
+  # Calendar ID taken from the embed on https://education.dsausa.org/calendar/
+  # NPEC events link to their Action Network RSVP page, which the aggregator
+  # carries through into the event description.
+  - name: "DSA Political Education (NPEC)"
+    type: "gcal"
+    url: "c_gr6govkt050e25nj4a4ldp2bu0@group.calendar.google.com"
+    enabled: true
+    region: "National"
+
+  # --- Commented placeholders: copy, uncomment, edit. ---
+
+  # - name: "DSA National"
+  #   type: "gcal"
+  #   url: "REPLACE_WITH_CALENDAR_ID@group.calendar.google.com"
+  #   enabled: false
+  #   region: "National"
+
+  # - name: "Kansas City DSA"
+  #   type: "ical"
+  #   url: "https://kcdsa.org/events/?ical=1"
+  #   enabled: false
+  #   region: "Missouri / Kansas"
+
+  # - name: "Mid-Missouri DSA"
+  #   type: "ical"
+  #   url: "https://example-chapter.org/events/?ical=1"
+  #   enabled: false
+  #   region: "Midwest"
+  #   include: ["socialist", "dsa", "labor"]
+  #   exclude: ["cancelled", "members only"]
