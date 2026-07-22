@@ -230,9 +230,16 @@ The modal is a native `<dialog>` opened with `showModal()`, so it gets a real
 backdrop, focus trapping, and Escape-to-close from the browser. Focus moves to
 the close button on open and returns to the card that opened it on close.
 
-Compact mode is a fixed three columns, so `data-limit="6"` lands as two clean
-rows of three. It steps down to two columns under 780px and one under 480px,
-measured on the container rather than the viewport.
+Both modes are a fixed three columns, so `data-limit="6"` on the home page lands
+as two clean rows of three and the calendar page matches it month by month. The
+three columns hold down to a 560px container, drop to two below that, and to one
+below 380px.
+
+Those breakpoints are measured on the **container**, not the viewport, because a
+block theme's content column is often far narrower than the window — that is why
+an earlier 780px breakpoint silently rendered two columns on a wide screen. If
+the cards still look cramped, widen the block itself in the WordPress editor
+(the alignment control → *Wide width*).
 
 Cards pull their palette from the Neve FSE theme's own CSS variables
 (`--wp--preset--color--ti-*`), so a theme color change carries through. Badge and
