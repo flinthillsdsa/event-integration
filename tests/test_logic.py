@@ -306,6 +306,17 @@ class TestEventsJsonEntries(unittest.TestCase):
         self.assertEqual(entry["source"], "national")
         self.assertEqual(entry["url"], "https://actionnetwork.org/events/cadre")
 
+    def test_event_without_an_rsvp_link_gets_no_url(self):
+        entry = build_entry(
+            {"id": "5", "summary": "[Social] Test Event", "description": "Test<br>",
+             "htmlLink": "https://www.google.com/calendar/event?eid=abc",
+             "start": {"dateTime": "2026-07-23T16:00:00-05:00"},
+             "end": {"dateTime": "2026-07-23T17:00:00-05:00"}},
+            self.config, source="chapter", tzinfo=CHICAGO,
+        )
+        self.assertIsNone(entry["url"], "must not fall back to the Google Calendar UI link")
+        self.assertEqual(entry["title"], "Test Event")
+
     def test_undated_event_is_dropped(self):
         self.assertIsNone(build_entry({"id": "4", "summary": "x"}, self.config,
                                       source="chapter", tzinfo=CHICAGO))

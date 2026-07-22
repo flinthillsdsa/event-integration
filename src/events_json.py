@@ -55,7 +55,10 @@ def build_entry(item: dict, config: Config, *, source: str, tzinfo: ZoneInfo) ->
         "allDay": all_day,
         "location": (item.get("location") or "").strip(),
         "description": _truncate(description, config.max_description_chars),
-        "url": extract_rsvp_url(description, fallback=item.get("htmlLink")),
+        # No fallback to the event's Google Calendar htmlLink: that URL drops a
+        # website visitor into Google's calendar UI, which is worse than no link.
+        # A card with no url simply renders without a "Details & RSVP" button.
+        "url": extract_rsvp_url(description),
         "committee": resolved.committee,
         "color": resolved.color,
         "source": source,
