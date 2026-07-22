@@ -6,9 +6,26 @@
     {
       "name": "Social",
       "color": "#e67c73"
+    },
+    {
+      "name": "National",
+      "color": "#ec1f27"
     }
   ],
   "events": [
+    {
+      "id": "aggfa91f18ab82fa0078a59d5a2981044341099e18c",
+      "title": "Door to door canvassing w/ Ethan Spurling",
+      "start": "2026-07-22T18:00:00-05:00",
+      "end": "2026-07-22T19:30:00-05:00",
+      "allDay": false,
+      "location": "",
+      "description": "RSVP / details: https://www.google.com/calendar/event?eid=NzBxMzJjcG5jNWo2MmI5azY1Z2o2YjlrNzVnbWFiOW82MHM2NmI5bTZjb204bzlnNmdyajhkajQ2MCBkc2FsYXdyZW5jZWtzQG0\n\n— via Lawrence DSA (Kansas)",
+      "url": "https://www.google.com/calendar/event?eid=NzBxMzJjcG5jNWo2MmI5azY1Z2o2YjlrNzVnbWFiOW82MHM2NmI5bTZjb204bzlnNmdyajhkajQ2MCBkc2FsYXdyZW5jZWtzQG0",
+      "committee": "National",
+      "color": "#ec1f27",
+      "source": "national"
+    },
     {
       "id": "sigh4604rbi7jvhc69rpkg6ptg",
       "title": "Test Event",
@@ -17,10 +34,140 @@
       "allDay": false,
       "location": "Test Location",
       "description": "Test<br>",
-      "url": "https://www.google.com/calendar/event?eid=c2lnaDQ2MDRyYmk3anZoYzY5cnBrZzZwdGcgZmxpbnRoaWxsc2RzYUBt",
+      "url": null,
       "committee": "Social",
       "color": "#e67c73",
       "source": "chapter"
+    },
+    {
+      "id": "agg1991ab11b2405fc4fa69e7fcd4339ffa52ffa467",
+      "title": "Zine Group",
+      "start": "2026-07-23T19:00:00-05:00",
+      "end": "2026-07-23T20:00:00-05:00",
+      "allDay": false,
+      "location": "Ecumenical Campus Ministries, 1204 Oread Ave, Lawrence, KS 66044",
+      "description": "RSVP / details: https://www.google.com/calendar/event?eid=NmNzNjhwYjZjZ3NqMmI5azc0cGoyYjlrNjhyNjhiYjI3NHNqYWI5azZjcDYycDlnY2dvbWFvYjNjOF8yMDI2MDcyNFQwMDAwMDBaIGRzYWxhd3JlbmNla3NAbQ\n\n— via Lawrence DSA (Kansas)",
+      "url": "https://www.google.com/calendar/event?eid=NmNzNjhwYjZjZ3NqMmI5azc0cGoyYjlrNjhyNjhiYjI3NHNqYWI5azZjcDYycDlnY2dvbWFvYjNjOF8yMDI2MDcyNFQwMDAwMDBaIGRzYWxhd3JlbmNla3NAbQ",
+      "committee": "National",
+      "color": "#ec1f27",
+      "source": "national"
+    },
+    {
+      "id": "agg1f4e0bf8edf84ab92d11422f64d27cd80f290732",
+      "title": "Lawrence DSA General Meeting (Zoom)",
+      "start": "2026-07-25T15:00:00-05:00",
+      "end": "2026-07-25T17:00:00-05:00",
+      "allDay": false,
+      "location": "",
+      "description": "RSVP / details: https://www.google.com/calendar/event?eid=NGQzdDJzNGU2YmVmaWlwMmlocXFidmY1aDBfMjAyNjA3MThUMjAwMDAwWiBkc2FsYXdyZW5jZWtzQG0\n\n— via Lawrence DSA (Kansas)",
+      "url": "https://www.google.com/calendar/event?eid=NGQzdDJzNGU2YmVmaWlwMmlocXFidmY1aDBfMjAyNjA3MThUMjAwMDAwWiBkc2FsYXdyZW5jZWtzQG0",
+      "committee": "National",
+      "color": "#ec1f27",
+      "source": "national"
+    },
+    {
+      "id": "aggb51e3ab0030d4cea971f0563185b7d83f1a71052",
+      "title": "Political Education Work Group",
+      "start": "2026-07-30T18:00:00-05:00",
+      "end": "2026-07-30T19:30:00-05:00",
+      "allDay": false,
+      "location": "",
+      "description": "RSVP / details: https://www.google.com/calendar/event?eid=YzRyNjJjaG82Y3BqaWJiMzc1Z2o2YjlrNmxoMzJiYjFjNG9tMmI5bTc0czNlZDlpNmxobThwajU2MF8yMDI2MDczMFQyMzAwMDBaIGRzYWxhd3JlbmNla3NAbQ\n\n— via Lawrence DSA (Kansas)",
+      "url": "https://www.google.com/calendar/event?eid=YzRyNjJjaG82Y3BqaWJiMzc1Z2o2YjlrNmxoMzJiYjFjNG9tMmI5bTc0czNlZDlpNmxobThwajU2MF8yMDI2MDczMFQyMzAwMDBaIGRzYWxhd3JlbmNla3NAbQ",
+      "committee": "National",
+      "color": "#ec1f27",
+      "source": "national"
+    },
+    {
+      "id": "agg628d4ba412ef1a929aa0be38352468682266be40",
+      "title": "Coffee with Comrades",
+      "start": "2026-07-30T18:30:00-05:00",
+      "end": "2026-07-30T20:00:00-05:00",
+      "allDay": false,
+      "location": "Nortons Brewing Company, 125 St Francis St, Wichita, KS 67202, USA",
+      "description": "Come get to know your fellow comrades at the Wichita DSA\n\nRSVP / details: https://www.google.com/calendar/event?eid=bDVjaG9yZDRyNzk2cnZ0YTV2ZGg1aDFoOW1fMjAyNjA3MzBUMjMzMDAwWiBzb2NpYWxpc3RzQGljdGRzYS5vcmc\n\n— via Wichita DSA (Kansas)",
+      "url": "https://www.google.com/calendar/event?eid=bDVjaG9yZDRyNzk2cnZ0YTV2ZGg1aDFoOW1fMjAyNjA3MzBUMjMzMDAwWiBzb2NpYWxpc3RzQGljdGRzYS5vcmc",
+      "committee": "National",
+      "color": "#ec1f27",
+      "source": "national"
+    },
+    {
+      "id": "aggb537e97fa8eab861a02edbda3acfbf36c1fb5c95",
+      "title": "Steering Committee (members only)",
+      "start": "2026-08-01T11:30:00-05:00",
+      "end": "2026-08-01T12:30:00-05:00",
+      "allDay": false,
+      "location": "https://dsausa.zoom.us/j/82391097101",
+      "description": "RSVP / details: https://www.google.com/calendar/event?eid=czByYzRyaXFuZG4yY2tjMmI0aHExbzA3MzFfMjAyNjA3MThUMTYzMDAwWiBzb2NpYWxpc3RzQGljdGRzYS5vcmc\n\n— via Wichita DSA (Kansas)",
+      "url": "https://www.google.com/calendar/event?eid=czByYzRyaXFuZG4yY2tjMmI0aHExbzA3MzFfMjAyNjA3MThUMTYzMDAwWiBzb2NpYWxpc3RzQGljdGRzYS5vcmc",
+      "committee": "National",
+      "color": "#ec1f27",
+      "source": "national"
+    },
+    {
+      "id": "agg745fec3559395ef2b3f60bf27224a2d82f89c1f9",
+      "title": "Lawrence DSA Neighborhood Networking Class",
+      "start": "2026-08-05T18:30:00-05:00",
+      "end": "2026-08-05T20:00:00-05:00",
+      "allDay": false,
+      "location": "Ecumenical Campus Ministries, 1204 Oread Ave, Lawrence, KS 66044",
+      "description": "RSVP / details: https://www.google.com/calendar/event?eid=Y2xpajBkcjRjZ3JtNmJiNjY4b21jYjlrNnBpbTZiOXBja28zNmI5bTZvcW0yY2ozNm9vNjJjajVjbyBkc2FsYXdyZW5jZWtzQG0\n\n— via Lawrence DSA (Kansas)",
+      "url": "https://www.google.com/calendar/event?eid=Y2xpajBkcjRjZ3JtNmJiNjY4b21jYjlrNnBpbTZiOXBja28zNmI5bTZvcW0yY2ozNm9vNjJjajVjbyBkc2FsYXdyZW5jZWtzQG0",
+      "committee": "National",
+      "color": "#ec1f27",
+      "source": "national"
+    },
+    {
+      "id": "agg8d61d00417d47c53bb3d710a33b3d1ec54f8fcd8",
+      "title": "General Membership Meeting",
+      "start": "2026-08-08T11:00:00-05:00",
+      "end": "2026-08-08T12:30:00-05:00",
+      "allDay": false,
+      "location": "3340 W Douglas Ave, Wichita, KS 67203, USA",
+      "description": "This is a hybrid meeting. It will physically be at the SEIU building and it will also be on the following zoom link. <a href=\"https://dsausa.zoom.us/j/84524923870\">https://dsausa.zoom.us/j/84524923870</a>\n\nRSVP / details: https://www.google.com/calendar/event?eid=aTFlcGJ0N3M2YmExNjczbTRkcjFocWk3ODAgc29jaWFsaXN0c0BpY3Rkc2Eub3Jn\n\n— via Wichita DSA (Kansas)",
+      "url": "https://dsausa.zoom.us/j/84524923870\">https://dsausa.zoom.us/j/84524923870</a",
+      "committee": "National",
+      "color": "#ec1f27",
+      "source": "national"
+    },
+    {
+      "id": "agg507bf6e3587504f2899e9b465dcd6c6d8e2822ab",
+      "title": "Electoral Committee",
+      "start": "2026-08-09T15:00:00-05:00",
+      "end": "2026-08-09T16:00:00-05:00",
+      "allDay": false,
+      "location": "",
+      "description": "RSVP / details: https://www.google.com/calendar/event?eid=NzdxdDFlbW10M3ZpZHVoMTY1bGJpMTY4Z2FfMjAyNjA4MDlUMjAwMDAwWiBkc2FsYXdyZW5jZWtzQG0\n\n— via Lawrence DSA (Kansas)",
+      "url": "https://www.google.com/calendar/event?eid=NzdxdDFlbW10M3ZpZHVoMTY1bGJpMTY4Z2FfMjAyNjA4MDlUMjAwMDAwWiBkc2FsYXdyZW5jZWtzQG0",
+      "committee": "National",
+      "color": "#ec1f27",
+      "source": "national"
+    },
+    {
+      "id": "aggf8b52cbfa2f7e03e0a252c4a28dc52965e179de4",
+      "title": "Lawrence DSA General Meeting",
+      "start": "2026-08-15T15:00:00-05:00",
+      "end": "2026-08-15T17:00:00-05:00",
+      "allDay": false,
+      "location": "Ecumenical Campus Ministries, 1204 Oread Ave, Lawrence, KS 66044, USA",
+      "description": "RSVP / details: https://www.google.com/calendar/event?eid=Y2RoMzBkaGs2a3M2Y2I5b2M0cGpnYjlrY29zMzJiYjI2b3NqZWJiMWM1aGowb3IzNzVpajJvajFjZ18yMDI2MDgxNVQyMDAwMDBaIGRzYWxhd3JlbmNla3NAbQ\n\n— via Lawrence DSA (Kansas)",
+      "url": "https://www.google.com/calendar/event?eid=Y2RoMzBkaGs2a3M2Y2I5b2M0cGpnYjlrY29zMzJiYjI2b3NqZWJiMWM1aGowb3IzNzVpajJvajFjZ18yMDI2MDgxNVQyMDAwMDBaIGRzYWxhd3JlbmNla3NAbQ",
+      "committee": "National",
+      "color": "#ec1f27",
+      "source": "national"
+    },
+    {
+      "id": "aggde5aca1602c74d8785c202332d72fa67d0a6c16d",
+      "title": "Queer Socialist Working Group",
+      "start": "2026-08-23T12:00:00-05:00",
+      "end": "2026-08-23T13:00:00-05:00",
+      "allDay": false,
+      "location": "Service Employees International Union, 3340 W Douglas Ave, Wichita, KS 67203, USA",
+      "description": "RSVP / details: https://www.google.com/calendar/event?eid=bDZwZzV1dm00M21vb2tvN3BiZXRkbmI4YTlfMjAyNjA4MjNUMTcwMDAwWiBzb2NpYWxpc3RzQGljdGRzYS5vcmc\n\n— via Wichita DSA (Kansas)",
+      "url": "https://www.google.com/calendar/event?eid=bDZwZzV1dm00M21vb2tvN3BiZXRkbmI4YTlfMjAyNjA4MjNUMTcwMDAwWiBzb2NpYWxpc3RzQGljdGRzYS5vcmc",
+      "committee": "National",
+      "color": "#ec1f27",
+      "source": "national"
     }
   ]
 }
