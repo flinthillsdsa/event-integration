@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Local service account key. NEVER commit a key.
+*service-account*.json
+*credentials*.json
+secrets/
