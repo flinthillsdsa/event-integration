@@ -11,32 +11,102 @@
 #               a source removes its events from the calendar on the next run.
 #   region   -- free-text tag appended to the event description ("National",
 #               "Kansas", "Midwest", ...). Optional.
-#   include  -- optional list of keywords; if present, an event is kept only if
-#               its title or description contains at least one.
-#   exclude  -- optional list of keywords; an event is dropped if its title or
-#               description contains any.
+#   filter   -- name of a shared rule from the 'filters:' block below.
+#   include  -- extra keywords; an event is kept only if it matches at least one
+#               (merged with the named filter's any_of).
+#   exclude  -- extra keywords; an event is dropped if it matches any
+#               (merged with the named filter's none_of).
 #
-# Every feed below was fetched and inspected on 2026-07-22. The event counts are
-# what each source actually returned inside the aggregator's 180-day window.
-# See docs/dsa-calendar-feeds.md for the full survey, including the chapters that
-# publish no usable feed, and docs/check_feeds.py to re-run the check.
+# include/exclude are matched case-insensitively against the event's title,
+# description AND location. Location matters: a Zoom or Meet link is often the
+# only place an event announces that it is attendable from another chapter.
 #
-# BEFORE ENABLING MORE: Chronicle mirrors this calendar into Discord, and Discord
-# caps a server at 100 upcoming events. The enabled set below totals roughly 75.
-# Adding Northwest Arkansas (127) or any large chapter will blow past that cap and
-# bury your own chapter's events. Use include/exclude filters, or lower
-# aggregator.horizon_days in config.yml, if you want a big chapter anyway.
+# Every feed below was fetched and inspected on 2026-07-22. See
+# docs/dsa-calendar-feeds.md for the full survey, and docs/check_feeds.py to
+# re-run the check.
+
+# --------------------------------------------------------------------------
+# Shared filter rules
+# --------------------------------------------------------------------------
+filters:
+
+  # For chapters too far away to attend in person. Keeps an event only if it
+  # looks joinable remotely or explicitly open beyond its own chapter, then
+  # drops the internal governance meetings that match anyway.
+  #
+  # Tune this list rather than editing sources one by one. If regional events
+  # feel too sparse, add terms to any_of; too noisy, add to none_of.
+  remote_or_open:
+    any_of:
+      # Joinable remotely -- usually found in the location field.
+      - "zoom.us"
+      - "zoom link"
+      - "zoom"
+      - "meet.google.com"
+      - "google meet"
+      - "teams.microsoft.com"
+      - "discord.gg"
+      - "livestream"
+      - "live stream"
+      - "webinar"
+      - "online"
+      - "virtual"
+      - "remote"
+      - "hybrid"
+      # Explicitly open beyond the hosting chapter.
+      - "open to all"
+      - "open to the public"
+      - "all are welcome"
+      - "all chapters"
+      - "cross-chapter"
+      - "nationwide"
+      - "national call"
+      - "region-wide"
+      - "statewide"
+    none_of:
+      # Another chapter's internal business, remote or not. Being on Zoom does
+      # not make a working-group call relevant to Flint Hills, and measured
+      # against the live feeds this is what most of the volume actually is:
+      # without these exclusions the ten distant chapters contribute 845 events,
+      # with them 149.
+      - "members only"
+      - "working group"
+      - "committee"
+      - "caucus"
+      - "branch meeting"
+      - "steering"
+      - "administrative"
+      - "operations"
+      - "check-in"
+      - "check in"
+      - "orientation"
+      - "onboarding"
+      - "office hours"
+      - "leadership"
+      - "coordinating"
+      # Another chapter's own membership meetings.
+      - "general body"
+      - "general meeting"
+      - "membership meeting"
+      - "chapter meeting"
+      - "officer"
+      # Local legwork nobody is travelling for.
+      - "tabling"
+      - "canvass"
+      - "turf"
+      - "phone bank"
+      - "phonebank"
+      - "text bank"
+      - "cancelled"
+      - "canceled"
 
 sources:
 
   # --- National bodies -----------------------------------------------------
-  # Both are configured correctly but were idle when checked (NPEC's last event
-  # was 2026-07-15). They cost nothing to leave on and will pick up whenever
-  # these bodies schedule something.
+  # Unfiltered: everything these publish is national by definition. Both were
+  # idle when checked (NPEC's last event was 2026-07-15) and will populate
+  # whenever they schedule something.
 
-  # Calendar ID from the embed on https://education.dsausa.org/calendar/
-  # NPEC events link to their Action Network RSVP page, which the aggregator
-  # carries through into the event description.
   - name: "DSA Political Education (NPEC)"
     type: "gcal"
     url: "c_gr6govkt050e25nj4a4ldp2bu0@group.calendar.google.com"
@@ -50,6 +120,7 @@ sources:
     region: "National"
 
   # --- Kansas neighbors ----------------------------------------------------
+  # Unfiltered: close enough that an in-person event is a real option.
 
   - name: "Lawrence DSA"
     type: "gcal"
@@ -63,71 +134,79 @@ sources:
     enabled: true
     region: "Kansas"
 
-  # --- Verified, parked ----------------------------------------------------
-  # All of these return real calendars. Flip enabled to true to add one, but
-  # watch the Discord cap noted above.
+  # --- Everywhere else -----------------------------------------------------
+  # Filtered to remotely-joinable or nationally-open events, since nobody is
+  # driving to a Tuesday committee meeting in Cleveland.
 
-  - name: "Central Iowa DSA"          # 33 events in a 180-day window
+  - name: "Central Iowa DSA"
     type: "gcal"
     url: "b6f2c910b116ae2abb27d65c0c397fc301e2334367c221c8f15f13fc3bd9b87f@group.calendar.google.com"
-    enabled: false
+    enabled: true
     region: "Iowa"
+    filter: "remote_or_open"
 
-  - name: "Iowa City DSA"             # 18 events
+  - name: "Iowa City DSA"
     type: "gcal"
     url: "exec@iowacitydsa.org"
-    enabled: false
+    enabled: true
     region: "Iowa"
+    filter: "remote_or_open"
 
-  - name: "Northwest Arkansas DSA"    # 127 events -- heavy, filter it
+  - name: "Northwest Arkansas DSA"
     type: "gcal"
     url: "nwademsoc@gmail.com"
-    enabled: false
+    enabled: true
     region: "Arkansas"
-    # Example of trimming a busy chapter down to the events worth sharing:
-    # include: ["general meeting", "rally", "canvass", "school"]
+    filter: "remote_or_open"
 
-  - name: "Twin Cities DSA"           # 30 upcoming
-    type: "gcal"
-    url: "3r812u8t6nf3203lqd0i3n1i20@group.calendar.google.com"
-    enabled: false
-    region: "Minnesota"
-
-  - name: "Denver DSA"                # 10 upcoming
-    type: "gcal"
-    url: "pp80f5omkpu3pkbum1lkb2ifhs@group.calendar.google.com"
-    enabled: false
-    region: "Colorado"
-
-  - name: "Austin DSA"                # 47 upcoming
+  - name: "Austin DSA"
     type: "gcal"
     url: "austindsatech@gmail.com"
-    enabled: false
+    enabled: true
     region: "Texas"
+    filter: "remote_or_open"
 
-  - name: "Houston DSA"               # 141 upcoming -- heavy
+  - name: "Houston DSA"
     type: "ical"
     url: "https://houstondsa.org/?post_type=tribe_events&ical=1&eventDisplay=list"
-    enabled: false
+    enabled: true
     region: "Texas"
+    filter: "remote_or_open"
 
-  - name: "Chicago DSA"               # 170 upcoming -- heavy
-    type: "ical"
-    url: "https://ics.teamup.com/feed/ksc3uaa38o41o2vz8o/0.ics"
-    enabled: false
-    region: "Illinois"
-
-  - name: "New Orleans DSA"           # 56 upcoming
+  - name: "New Orleans DSA"
     type: "gcal"
     url: "vv0uj9uhqrl6j6m0pugu90uo6c@group.calendar.google.com"
-    enabled: false
+    enabled: true
     region: "Louisiana"
+    filter: "remote_or_open"
 
-  - name: "Cleveland DSA"             # 62 upcoming
+  - name: "Chicago DSA"
+    type: "ical"
+    url: "https://ics.teamup.com/feed/ksc3uaa38o41o2vz8o/0.ics"
+    enabled: true
+    region: "Illinois"
+    filter: "remote_or_open"
+
+  - name: "Twin Cities DSA"
+    type: "gcal"
+    url: "3r812u8t6nf3203lqd0i3n1i20@group.calendar.google.com"
+    enabled: true
+    region: "Minnesota"
+    filter: "remote_or_open"
+
+  - name: "Denver DSA"
+    type: "gcal"
+    url: "pp80f5omkpu3pkbum1lkb2ifhs@group.calendar.google.com"
+    enabled: true
+    region: "Colorado"
+    filter: "remote_or_open"
+
+  - name: "Cleveland DSA"
     type: "gcal"
     url: "dsacleinternal@gmail.com"
-    enabled: false
+    enabled: true
     region: "Ohio"
+    filter: "remote_or_open"
 
   # --- Do not enable as-is -------------------------------------------------
   # Kansas City DSA: https://kcdsa.org/wp-json/r34icspro/v5/ics/9c37159db5ce114ddfce208403ae2dfd4995d529

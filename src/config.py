@@ -188,6 +188,17 @@ def load_sources(feeds_path: Path | None = None) -> list[Source]:
         raise ConfigError(f"feeds config not found at {path}")
 
     raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+    # Named, reusable filter sets so a rule like "remote or nationally open"
+    # is written once instead of copied onto every distant chapter.
+    filter_sets: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {}
+    for name, spec in (raw.get("filters") or {}).items():
+        spec = spec or {}
+        filter_sets[str(name)] = (
+            tuple(str(k).strip().lower() for k in (spec.get("any_of") or []) if str(k).strip()),
+            tuple(str(k).strip().lower() for k in (spec.get("none_of") or []) if str(k).strip()),
+        )
+
     sources: list[Source] = []
     seen: set[str] = set()
 
@@ -203,6 +214,21 @@ def load_sources(feeds_path: Path | None = None) -> list[Source]:
             raise ConfigError(f"feeds.yml has two sources named {name!r}; names must be unique.")
         seen.add(name.lower())
 
+        include = tuple(str(k).strip().lower() for k in (entry.get("include") or []) if str(k).strip())
+        exclude = tuple(str(k).strip().lower() for k in (entry.get("exclude") or []) if str(k).strip())
+
+        # A named filter merges into whatever the source declares inline.
+        filter_name = entry.get("filter")
+        if filter_name:
+            if str(filter_name) not in filter_sets:
+                raise ConfigError(
+                    f"source {name!r} references filter {filter_name!r}, which is not "
+                    f"defined under 'filters:'. Known filters: {sorted(filter_sets)}"
+                )
+            any_of, none_of = filter_sets[str(filter_name)]
+            include += any_of
+            exclude += none_of
+
         sources.append(
             Source(
                 name=name,
@@ -210,8 +236,8 @@ def load_sources(feeds_path: Path | None = None) -> list[Source]:
                 url=url,
                 enabled=bool(entry.get("enabled", True)),
                 region=(str(entry["region"]).strip() if entry.get("region") else None),
-                include=tuple(str(k).strip().lower() for k in (entry.get("include") or []) if str(k).strip()),
-                exclude=tuple(str(k).strip().lower() for k in (entry.get("exclude") or []) if str(k).strip()),
+                include=include,
+                exclude=exclude,
             )
         )
 
