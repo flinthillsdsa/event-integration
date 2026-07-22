@@ -30,6 +30,10 @@
 # --------------------------------------------------------------------------
 filters:
 
+  # NOT CURRENTLY USED by any source -- every enabled feed is a national body
+  # or a neighbour worth seeing in full. Kept because it is the right tool if a
+  # distant chapter is ever added: reference it with `filter: remote_or_open`.
+  #
   # For chapters too far away to attend in person. Keeps an event only if it
   # looks joinable remotely or explicitly open beyond its own chapter, then
   # drops the internal governance meetings that match anyway.
@@ -134,79 +138,15 @@ sources:
     enabled: true
     region: "Kansas"
 
-  # --- Everywhere else -----------------------------------------------------
-  # Filtered to remotely-joinable or nationally-open events, since nobody is
-  # driving to a Tuesday committee meeting in Cleveland.
+  # --- Nebraska ------------------------------------------------------------
+  # dsanebraska.org runs one calendar for the state; its feed carries joint
+  # "Lincoln and Omaha DSA" events, so this single source covers both cities.
 
-  - name: "Central Iowa DSA"
+  - name: "Nebraska DSA (Lincoln / Omaha)"
     type: "gcal"
-    url: "b6f2c910b116ae2abb27d65c0c397fc301e2334367c221c8f15f13fc3bd9b87f@group.calendar.google.com"
+    url: "8f7b2f4aff1da8f0fb3c6818e4f186a0040bf8e077a9bd0d2cb3b457074fe211@group.calendar.google.com"
     enabled: true
-    region: "Iowa"
-    filter: "remote_or_open"
-
-  - name: "Iowa City DSA"
-    type: "gcal"
-    url: "exec@iowacitydsa.org"
-    enabled: true
-    region: "Iowa"
-    filter: "remote_or_open"
-
-  - name: "Northwest Arkansas DSA"
-    type: "gcal"
-    url: "nwademsoc@gmail.com"
-    enabled: true
-    region: "Arkansas"
-    filter: "remote_or_open"
-
-  - name: "Austin DSA"
-    type: "gcal"
-    url: "austindsatech@gmail.com"
-    enabled: true
-    region: "Texas"
-    filter: "remote_or_open"
-
-  - name: "Houston DSA"
-    type: "ical"
-    url: "https://houstondsa.org/?post_type=tribe_events&ical=1&eventDisplay=list"
-    enabled: true
-    region: "Texas"
-    filter: "remote_or_open"
-
-  - name: "New Orleans DSA"
-    type: "gcal"
-    url: "vv0uj9uhqrl6j6m0pugu90uo6c@group.calendar.google.com"
-    enabled: true
-    region: "Louisiana"
-    filter: "remote_or_open"
-
-  - name: "Chicago DSA"
-    type: "ical"
-    url: "https://ics.teamup.com/feed/ksc3uaa38o41o2vz8o/0.ics"
-    enabled: true
-    region: "Illinois"
-    filter: "remote_or_open"
-
-  - name: "Twin Cities DSA"
-    type: "gcal"
-    url: "3r812u8t6nf3203lqd0i3n1i20@group.calendar.google.com"
-    enabled: true
-    region: "Minnesota"
-    filter: "remote_or_open"
-
-  - name: "Denver DSA"
-    type: "gcal"
-    url: "pp80f5omkpu3pkbum1lkb2ifhs@group.calendar.google.com"
-    enabled: true
-    region: "Colorado"
-    filter: "remote_or_open"
-
-  - name: "Cleveland DSA"
-    type: "gcal"
-    url: "dsacleinternal@gmail.com"
-    enabled: true
-    region: "Ohio"
-    filter: "remote_or_open"
+    region: "Nebraska"
 
   # --- Do not enable as-is -------------------------------------------------
   # Kansas City DSA: https://kcdsa.org/wp-json/r34icspro/v5/ics/9c37159db5ce114ddfce208403ae2dfd4995d529
@@ -218,5 +158,14 @@ sources:
   # Housing Justice Commission: https://housing.dsausa.org/events/?ical=1
   #   HTTP 403. May be bot protection that behaves differently from a GitHub
   #   runner -- if you want it, enable it and read one run's log before trusting.
+  # Oklahoma City DSA: okcdsa.org has no events or calendar page at all (both
+  #   /events/ and /calendar/ return 404) and runs no calendar plugin.
+  # Omaha DSA: omahadsa.org is a Hugo site that embeds its events as inline
+  #   JSON for FullCalendar -- no subscribable feed. The Nebraska DSA calendar
+  #   above already carries the joint Lincoln/Omaha events.
   # DSA Los Angeles, East Bay, Columbus, Milwaukee, Madison, North NJ, Metro DC,
-  # Southern NH, Tampa: all broken as of 2026-07-22. See docs/dsa-calendar-feeds.md.
+  #   Southern NH, Tampa: all broken as of 2026-07-22.
+  # Larger chapters (Chicago, Twin Cities, Denver, Cleveland, Austin, Houston,
+  #   New Orleans) have working feeds listed in docs/dsa-calendar-feeds.md. They
+  #   are deliberately absent: measured live they carry 1,697 events over the
+  #   horizon, nearly all internal committee and working-group calls.

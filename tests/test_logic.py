@@ -421,42 +421,64 @@ class TestWebsiteSourceSelection(unittest.TestCase):
 
 
 class TestNamedFilters(unittest.TestCase):
-    """Distant chapters are filtered to things a Flint Hills member could join."""
+    """Named filter sets, resolved onto sources by name.
+
+    Built against a temporary feeds file rather than the shipped one, so the
+    behaviour stays covered no matter which chapters are enabled today.
+    """
+
+    FEEDS = """
+filters:
+  remote_or_open:
+    any_of: ["zoom.us", "online", "open to all"]
+    none_of: ["working group", "members only"]
+sources:
+  - name: "Far Away DSA"
+    type: "gcal"
+    url: "far@example.com"
+    filter: "remote_or_open"
+  - name: "Neighbour DSA"
+    type: "gcal"
+    url: "near@example.com"
+"""
+
+    def setUp(self):
+        import tempfile
+        handle = tempfile.NamedTemporaryFile("w", suffix=".yml", delete=False)
+        handle.write(self.FEEDS)
+        handle.close()
+        self.sources = {s.name: s for s in load_sources(Path(handle.name))}
 
     def _event(self, title, description="", location=""):
         start = dt.datetime(2026, 9, 1, 18, 0, tzinfo=CHICAGO)
         return NormalizedEvent(
             uid="u", title=title, description=description, location=location,
-            start=start, end=start + dt.timedelta(hours=1), url=None, source="Chicago DSA",
+            start=start, end=start + dt.timedelta(hours=1), url=None, source="Far Away DSA",
         )
 
-    def _filtered_source(self):
-        sources = {s.name: s for s in load_sources()}
-        return sources["Chicago DSA"]
-
-    def test_the_filter_is_resolved_from_the_named_set(self):
-        source = self._filtered_source()
+    def test_the_named_set_is_merged_onto_the_source(self):
+        source = self.sources["Far Away DSA"]
         self.assertIn("zoom.us", source.include)
         self.assertIn("working group", source.exclude)
 
     def test_a_zoom_link_in_the_location_field_counts(self):
         # The whole point of matching location: that is where Zoom links live.
         event = self._event("Socialist Night School", location="https://zoom.us/j/123")
-        self.assertTrue(event.matches_filters(self._filtered_source()))
+        self.assertTrue(event.matches_filters(self.sources["Far Away DSA"]))
 
     def test_an_in_person_only_event_is_dropped(self):
         event = self._event("Rally at City Hall", location="City Hall, Chicago")
-        self.assertFalse(event.matches_filters(self._filtered_source()))
+        self.assertFalse(event.matches_filters(self.sources["Far Away DSA"]))
 
     def test_a_remote_internal_meeting_is_still_dropped(self):
-        event = self._event("AgitProp Operations Meeting", location="https://zoom.us/j/9")
-        self.assertFalse(event.matches_filters(self._filtered_source()))
+        event = self._event("AgitProp Working Group", location="https://zoom.us/j/9")
+        self.assertFalse(event.matches_filters(self.sources["Far Away DSA"]))
 
-    def test_kansas_neighbours_are_not_filtered(self):
-        lawrence = {s.name: s for s in load_sources()}["Lawrence DSA"]
-        self.assertEqual(lawrence.include, ())
+    def test_a_source_without_a_filter_keeps_everything(self):
+        neighbour = self.sources["Neighbour DSA"]
+        self.assertEqual(neighbour.include, ())
         event = self._event("Electoral Committee", location="Lawrence Public Library")
-        self.assertTrue(event.matches_filters(lawrence))
+        self.assertTrue(event.matches_filters(neighbour))
 
     def test_unknown_filter_name_is_rejected(self):
         import tempfile

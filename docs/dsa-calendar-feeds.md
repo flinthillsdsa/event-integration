@@ -19,6 +19,11 @@ Every candidate below was **fetched directly on 2026-07-22** and the response in
 
 Re-run the check any time with `python3 docs/check_feeds.py`.
 
+**Being listed here does not mean it is enabled.** `config/feeds.yml` deliberately runs a
+short list — the national bodies plus Kansas and Nebraska neighbours. The large chapters
+below have working feeds but carry 1,697 events over a 180-day horizon between them, almost
+all internal committee and working-group calls.
+
 ## Deriving a feed URL yourself
 
 For a public Google Calendar with ID `X`, the iCal feed is always:
@@ -88,10 +93,11 @@ public Google Calendars, which is why the list is so short.
 | Central Iowa DSA (Des Moines) | IA | gcal | `b6f2c910b116ae2abb27d65c0c397fc301e2334367c221c8f15f13fc3bd9b87f@group.calendar.google.com` | **WORKS** | 221 / 2 |
 | Iowa City DSA | IA | gcal | `exec@iowacitydsa.org` | **WORKS** | 171 / 0 |
 | Northwest Arkansas DSA | AR | gcal | `nwademsoc@gmail.com` | **WORKS** | 215 / 3 |
-| Omaha DSA | NE | — | `https://omahadsa.org/index.xml` is RSS, not iCal | NO iCal | — |
+| Nebraska DSA (Lincoln / Omaha) | NE | gcal | `8f7b2f4aff1da8f0fb3c6818e4f186a0040bf8e077a9bd0d2cb3b457074fe211@group.calendar.google.com` | **WORKS** | 40 in 180d |
+| Omaha DSA (own site) | NE | — | Hugo site embedding inline JSON for FullCalendar; no subscribable feed. Its joint Lincoln/Omaha events appear on the Nebraska calendar above | NO FEED | — |
 | St. Louis DSA | MO | — | custom event app | NOT FOUND | — |
 | Mid-Missouri DSA | MO | — | Action Network only | NO FEED | — |
-| Oklahoma City DSA | OK | — | Action Network / Linktree | NO FEED | — |
+| Oklahoma City DSA | OK | — | `/events/` and `/calendar/` both 404; no calendar plugin installed | NO FEED | — |
 | Green Country DSA (Tulsa) | OK | — | social media only | NOT FOUND | — |
 
 Two traps in this region. **Topeka** returns 192 events that are all titled "Busy" — the
