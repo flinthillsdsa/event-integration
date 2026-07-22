@@ -34,6 +34,7 @@ def make_config() -> Config:
         window_days=60,
         output_path=Path("events.json"),
         max_description_chars=600,
+        website_sources=("chapter",),
         committees=[
             Committee("Housing Justice and Tenant Organizing", ("Housing", "HJTO"), "#0b8043", ("tenant", "housing")),
             Committee("Political Education", ("PolEd",), "#8e24aa", ("reading", "education")),
@@ -391,6 +392,32 @@ class TestEventsJsonEntries(unittest.TestCase):
     def test_undated_event_is_dropped(self):
         self.assertIsNone(build_entry({"id": "4", "summary": "x"}, self.config,
                                       source="chapter", tzinfo=CHICAGO))
+
+
+class TestWebsiteSourceSelection(unittest.TestCase):
+    """National/regional events go to Discord, not onto fhdsa.org."""
+
+    def test_shipped_config_excludes_national_from_the_website(self):
+        config = load_config(require_credentials=False)
+        self.assertEqual(config.website_sources, ("chapter",))
+
+    def test_unknown_source_is_rejected(self):
+        from src.config import ConfigError, _website_sources
+
+        with self.assertRaises(ConfigError):
+            _website_sources({"sources": ["chapter", "regional"]})
+
+    def test_empty_source_list_is_rejected(self):
+        from src.config import ConfigError, _website_sources
+
+        with self.assertRaises(ConfigError):
+            _website_sources({"sources": []})
+
+    def test_both_sources_still_allowed(self):
+        from src.config import _website_sources
+
+        self.assertEqual(_website_sources({"sources": ["chapter", "national"]}),
+                         ("chapter", "national"))
 
 
 class TestShippedConfig(unittest.TestCase):

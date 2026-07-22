@@ -70,10 +70,13 @@ def generate(config: Config) -> dict:
     sa_email = gcal.service_account_email(config.service_account_info)
     tzinfo = ZoneInfo(config.timezone)
 
-    for label, calendar_id in (
-        ("Flint Hills Chapter of DSA", config.chapter_calendar_id),
-        ("National / Regional", config.national_calendar_id),
-    ):
+    calendars = [
+        ("chapter", "Flint Hills Chapter of DSA", config.chapter_calendar_id),
+        ("national", "National / Regional", config.national_calendar_id),
+    ]
+    calendars = [c for c in calendars if c[0] in config.website_sources]
+
+    for _, label, calendar_id in calendars:
         gcal.check_access(service, calendar_id=calendar_id, sa_email=sa_email,
                           label=label, need_write=False)
 
@@ -83,10 +86,7 @@ def generate(config: Config) -> dict:
     time_max = now + dt.timedelta(days=config.window_days)
 
     entries: list[dict] = []
-    for source, calendar_id in (
-        ("chapter", config.chapter_calendar_id),
-        ("national", config.national_calendar_id),
-    ):
+    for source, _, calendar_id in calendars:
         # Deliberately not caught: a half-read calendar would publish a feed
         # missing real events, and the site would quietly show a short list.
         # Better to fail and leave the last good events.json in place.

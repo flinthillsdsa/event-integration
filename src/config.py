@@ -57,6 +57,7 @@ class Config:
     window_days: int
     output_path: Path
     max_description_chars: int
+    website_sources: tuple[str, ...]
 
     committees: list[Committee]
     default_committee: Committee
@@ -76,6 +77,26 @@ def _committee(raw: dict) -> Committee:
         color=color,
         keywords=tuple(str(k).strip().lower() for k in (raw.get("keywords") or []) if str(k).strip()),
     )
+
+
+VALID_WEBSITE_SOURCES = ("chapter", "national")
+
+
+def _website_sources(events_json_raw: dict) -> tuple[str, ...]:
+    """Which calendars the website feed draws from. Defaults to chapter only."""
+    raw = events_json_raw.get("sources", ["chapter"])
+    if isinstance(raw, str):
+        raw = [raw]
+    sources = tuple(str(s).strip().lower() for s in raw if str(s).strip())
+    unknown = [s for s in sources if s not in VALID_WEBSITE_SOURCES]
+    if unknown:
+        raise ConfigError(
+            f"events_json.sources has unknown entries {unknown}; "
+            f"valid values are {list(VALID_WEBSITE_SOURCES)}."
+        )
+    if not sources:
+        raise ConfigError("events_json.sources is empty; the website feed would always be blank.")
+    return sources
 
 
 def _load_service_account_info(required: bool) -> dict:
@@ -153,6 +174,7 @@ def load_config(config_path: Path | None = None, *, require_credentials: bool = 
         window_days=int(ejs.get("window_days", 60)),
         output_path=REPO_ROOT / str(ejs.get("output_path", "events.json")),
         max_description_chars=int(ejs.get("max_description_chars", 600)),
+        website_sources=_website_sources(ejs),
         committees=committees,
         default_committee=_committee(raw.get("default_committee") or {"name": "General", "color": "#546e7a"}),
         national_committee=_committee(raw.get("national_committee") or {"name": "National", "color": "#ec1f27"}),
