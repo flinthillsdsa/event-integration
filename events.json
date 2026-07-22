@@ -4,22 +4,22 @@
   "windowDays": 60,
   "committees": [
     {
-      "name": "Social",
-      "color": "#e67c73"
+      "name": "Meetings",
+      "color": "#616161"
     }
   ],
   "events": [
     {
-      "id": "sigh4604rbi7jvhc69rpkg6ptg",
-      "title": "Test Event",
-      "start": "2026-07-23T16:00:00-05:00",
-      "end": "2026-07-23T17:00:00-05:00",
+      "id": "ts7o7hk0kdhcmbicrqrmqvjgdk",
+      "title": "Monthly Steering Committee Meeting",
+      "start": "2026-07-27T18:00:00-05:00",
+      "end": "2026-07-27T20:00:00-05:00",
       "allDay": false,
-      "location": "Test Location",
-      "description": "Test<br>",
+      "location": "Reach out to Steering Committee for Location",
+      "description": "This is the monthly meeting for the Flint Hills DSA Steering Committee. It is open to all members of the Flint Hills Chapter of DSA. For location details, contact the Steering Committee (chapter@fhdsa.org).<br>",
       "url": null,
-      "committee": "Social",
-      "color": "#e67c73",
+      "committee": "Meetings",
+      "color": "#616161",
       "source": "chapter"
     }
   ]
