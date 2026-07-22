@@ -138,6 +138,14 @@ sources:
     enabled: true
     region: "Kansas"
 
+  # Calendar ID is not linked anywhere obvious: it is embedded in the page
+  # builder's serialised blob on sekdsa.org/event-calendar.
+  - name: "Southeast Kansas DSA"
+    type: "gcal"
+    url: "southeastksdsa@gmail.com"
+    enabled: true
+    region: "Kansas"
+
   # --- Nebraska ------------------------------------------------------------
   # dsanebraska.org runs one calendar for the state; its feed carries joint
   # "Lincoln and Omaha DSA" events, so this single source covers both cities.
@@ -153,8 +161,13 @@ sources:
   #   Returns a well-formed calendar containing zero events. Worth asking KC
   #   about directly -- they clearly mean to publish a feed.
   # Topeka DSA: topekadsa@gmail.com
-  #   192 events, every one titled "Busy". The calendar is shared free/busy-only,
-  #   so no titles or locations come through. Ask them to share full details.
+  #   44 events in the horizon, every one titled "Busy". The calendar is shared
+  #   free/busy-only, so no titles, locations or descriptions come through.
+  #   Ask them to switch sharing to "See all event details".
+  # Salina DSA: linktr.ee/dsa.salina -- Linktree only, no calendar of any kind.
+  # Oklahoma: there is no statewide chapter. Oklahoma City (okcdsa.org) and
+  #   Green Country/Tulsa are separate, and neither publishes a feed; OKC
+  #   organises through Action Network.
   # Housing Justice Commission: https://housing.dsausa.org/events/?ical=1
   #   HTTP 403. May be bot protection that behaves differently from a GitHub
   #   runner -- if you want it, enable it and read one run's log before trusting.
