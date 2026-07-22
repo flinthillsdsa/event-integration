@@ -14,7 +14,9 @@
  *   data-limit  max events to render. Default: all.
  *   data-source "all" | "chapter" | "national". Default "all".
  *   data-src    override the events.json URL.
- *   data-more   URL for a trailing "see all events" link.
+ *
+ * Cards never navigate away. Clicking one opens a modal holding the full
+ * details, including the Action Network RSVP link when the event has one.
  */
 (function () {
   "use strict";
@@ -51,61 +53,155 @@
     return start.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   }
 
-  function buildCard(event) {
-    var card = el("li", "fhdsa-events__card");
+  function plainText(html) {
+    return (html || "").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, " ");
+  }
+
+  function formatFullDate(event) {
+    var start = parseDate(event.start);
+    var end = parseDate(event.end);
+    if (!start) return "";
+    var datePart = start.toLocaleDateString(undefined, {
+      weekday: "long", month: "long", day: "numeric", year: "numeric"
+    });
+    if (event.allDay) return datePart + " · all day";
+    var opts = { hour: "numeric", minute: "2-digit" };
+    var text = datePart + " · " + start.toLocaleTimeString(undefined, opts);
+    if (end && end > start) text += " – " + end.toLocaleTimeString(undefined, opts);
+    return text;
+  }
+
+  // The card is a button, not a link: it opens the modal rather than navigating.
+  // Compact mode shows only the colour bar, badge, date and title; everything
+  // else lives in the modal.
+  function buildCard(event, onOpen) {
+    var item = el("li", "fhdsa-events__item");
+    var card = el("button", "fhdsa-events__card");
+    card.type = "button";
     card.style.setProperty("--card-color", event.color || "");
     card.setAttribute("data-committee", event.committee || "");
     card.setAttribute("data-source", event.source || "");
+    card.setAttribute("aria-haspopup", "dialog");
 
     card.appendChild(el("span", "fhdsa-events__badge", event.committee || "General"));
     if (event.source === "national") {
       card.appendChild(el("span", "fhdsa-events__flag", "National / Regional"));
     }
-
     card.appendChild(el("p", "fhdsa-events__date", formatDate(event)));
+    card.appendChild(el("h3", "fhdsa-events__title", event.title));
 
-    var heading = el("h3", "fhdsa-events__title");
-    if (event.url) {
-      var titleLink = el("a", null, event.title);
-      titleLink.href = event.url;
-      titleLink.rel = "noopener";
-      heading.appendChild(titleLink);
+    card.addEventListener("click", function () { onOpen(event, card); });
+
+    item.appendChild(card);
+    return item;
+  }
+
+  // --- modal ---------------------------------------------------------------
+  // One dialog is shared by every container on the page; it is created lazily
+  // and repopulated on each open.
+
+  var dialog = null;
+  var lastFocused = null;
+
+  function closeDialog() {
+    if (!dialog) return;
+    if (dialog.open && typeof dialog.close === "function") {
+      dialog.close();                      // fires the "close" event
     } else {
-      heading.textContent = event.title;
+      dialog.removeAttribute("open");
+      if (lastFocused && lastFocused.focus) lastFocused.focus();
     }
-    card.appendChild(heading);
+  }
+
+  function ensureDialog() {
+    if (dialog) return dialog;
+
+    dialog = el("dialog", "fhdsa-events__dialog");
+    dialog.setAttribute("aria-labelledby", "fhdsa-events-dialog-title");
+
+    var close = el("button", "fhdsa-events__close");
+    close.type = "button";
+    close.setAttribute("aria-label", "Close");
+    close.innerHTML = "&times;";
+    close.addEventListener("click", closeDialog);
+
+    dialog.appendChild(close);
+    dialog.appendChild(el("div", "fhdsa-events__dialog-body"));
+
+    // Clicking the backdrop (the dialog element itself, outside its content)
+    // closes it, matching what people expect from a modal.
+    dialog.addEventListener("click", function (evt) {
+      if (evt.target === dialog) closeDialog();
+    });
+    dialog.addEventListener("close", function () {
+      if (lastFocused && lastFocused.focus) lastFocused.focus();
+    });
+    // showModal() gives Escape-to-close for free. The setAttribute("open")
+    // fallback below does not, so handle the key explicitly for that path.
+    dialog.addEventListener("keydown", function (evt) {
+      if (evt.key === "Escape" && typeof dialog.showModal !== "function") {
+        evt.preventDefault();
+        closeDialog();
+      }
+    });
+
+    document.body.appendChild(dialog);
+    return dialog;
+  }
+
+  function openModal(event, trigger) {
+    var node = ensureDialog();
+    var body = node.querySelector(".fhdsa-events__dialog-body");
+    body.textContent = "";
+    node.style.setProperty("--card-color", event.color || "");
+
+    body.appendChild(el("span", "fhdsa-events__badge", event.committee || "General"));
+    if (event.source === "national") {
+      body.appendChild(el("span", "fhdsa-events__flag", "National / Regional"));
+    }
+
+    var heading = el("h2", "fhdsa-events__dialog-title", event.title);
+    heading.id = "fhdsa-events-dialog-title";
+    body.appendChild(heading);
+
+    body.appendChild(el("p", "fhdsa-events__dialog-date", formatFullDate(event)));
 
     if (event.location) {
-      var meta = el("div", "fhdsa-events__meta");
-      meta.appendChild(el("span", null, event.location));
-      card.appendChild(meta);
+      body.appendChild(el("p", "fhdsa-events__dialog-location", event.location));
     }
 
-    // Bare URLs are dropped from the excerpt: the RSVP link is already rendered
-    // as its own control, and a raw actionnetwork.org URL eats the whole card.
-    var excerpt = (event.description || "")
-      .replace(/<[^>]*>/g, " ")
-      .replace(/https?:\/\/\S+/gi, "")
-      .replace(/\s+/g, " ")
-      .trim();
-    if (excerpt) {
-      if (excerpt.length > 160) excerpt = excerpt.slice(0, 159).trim() + "…";
-      card.appendChild(el("p", "fhdsa-events__excerpt", excerpt));
-    }
+    // The description is plain text from the calendar. Render its paragraphs,
+    // minus any bare URL, since the RSVP link gets its own button below.
+    var text = plainText(event.description).replace(/https?:\/\/\S+/gi, "");
+    text.split(/\n{1,}/).forEach(function (para) {
+      var trimmed = para.replace(/[ \t]+/g, " ").trim();
+      if (!trimmed) return;
+      // Removing the URL can strip a line down to its label ("RSVP:",
+      // "Sign up -"), which reads as a broken sentence next to the button.
+      if (trimmed.length <= 24 && /[:\-–—]$/.test(trimmed)) return;
+      body.appendChild(el("p", "fhdsa-events__dialog-text", trimmed));
+    });
 
     if (event.url) {
-      var link = el("a", "fhdsa-events__link", "Details & RSVP →");
-      link.href = event.url;
-      link.rel = "noopener";
-      card.appendChild(link);
+      var rsvp = el("a", "fhdsa-events__rsvp", "RSVP on Action Network →");
+      rsvp.href = event.url;
+      rsvp.target = "_blank";
+      rsvp.rel = "noopener noreferrer";
+      body.appendChild(rsvp);
     }
 
-    return card;
+    lastFocused = trigger || document.activeElement;
+    if (typeof node.showModal === "function") {
+      node.showModal();
+    } else {
+      node.setAttribute("open", "");           // very old browsers: inline fallback
+    }
+    node.querySelector(".fhdsa-events__close").focus();
   }
 
   function renderGrid(events) {
     var grid = el("ul", "fhdsa-events__grid");
-    events.forEach(function (event) { grid.appendChild(buildCard(event)); });
+    events.forEach(function (event) { grid.appendChild(buildCard(event, openModal)); });
     return grid;
   }
 
@@ -198,15 +294,6 @@
     root.appendChild(el("div", "fhdsa-events__body"));
     if (mode === "full") renderFilters(root, data, state, rerender);
     rerender();
-
-    var more = root.getAttribute("data-more");
-    if (more) {
-      var wrap = el("p", "fhdsa-events__more");
-      var link = el("a", "fhdsa-events__link", "See all events →");
-      link.href = more;
-      wrap.appendChild(link);
-      root.appendChild(wrap);
-    }
   }
 
   function init() {
