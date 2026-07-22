@@ -105,6 +105,10 @@ Add an entry to `config/feeds.yml` and commit:
     exclude: ["members only"]      # optional: drop events matching any
 ```
 
+[`docs/dsa-calendar-feeds.md`](docs/dsa-calendar-feeds.md) is a surveyed list of DSA national
+bodies and chapters with a working (or broken) public feed, each one actually fetched and
+checked. Re-run that check any time with `python3 docs/check_feeds.py`.
+
 Where to find feed URLs:
 
 - Most DSA chapter sites run WordPress with **The Events Calendar**, which

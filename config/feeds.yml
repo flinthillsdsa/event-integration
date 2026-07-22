@@ -16,17 +16,25 @@
 #   exclude  -- optional list of keywords; an event is dropped if its title or
 #               description contains any.
 #
-# Where to find more feeds:
-#   * Most DSA chapter sites run WordPress + The Events Calendar, which exposes
-#     an iCal feed at  https://<chapter-site>/events/?ical=1  (older installs:
-#     .../events/?tribe_display=list&ical=1). Use type: ical.
-#   * National committee and working-group calendars are usually public Google
-#     Calendars. Grab the calendar ID from the embed code (the src= parameter,
-#     base64-decoded) or from "Integrate calendar" in calendar settings, and use
-#     type: gcal. A public .ics URL for the same calendar also works as ical.
+# Every feed below was fetched and inspected on 2026-07-22. The event counts are
+# what each source actually returned inside the aggregator's 180-day window.
+# See docs/dsa-calendar-feeds.md for the full survey, including the chapters that
+# publish no usable feed, and docs/check_feeds.py to re-run the check.
+#
+# BEFORE ENABLING MORE: Chronicle mirrors this calendar into Discord, and Discord
+# caps a server at 100 upcoming events. The enabled set below totals roughly 75.
+# Adding Northwest Arkansas (127) or any large chapter will blow past that cap and
+# bury your own chapter's events. Use include/exclude filters, or lower
+# aggregator.horizon_days in config.yml, if you want a big chapter anyway.
 
 sources:
-  # Calendar ID taken from the embed on https://education.dsausa.org/calendar/
+
+  # --- National bodies -----------------------------------------------------
+  # Both are configured correctly but were idle when checked (NPEC's last event
+  # was 2026-07-15). They cost nothing to leave on and will pick up whenever
+  # these bodies schedule something.
+
+  # Calendar ID from the embed on https://education.dsausa.org/calendar/
   # NPEC events link to their Action Network RSVP page, which the aggregator
   # carries through into the event description.
   - name: "DSA Political Education (NPEC)"
@@ -35,24 +43,101 @@ sources:
     enabled: true
     region: "National"
 
-  # --- Commented placeholders: copy, uncomment, edit. ---
+  - name: "YDSA"
+    type: "gcal"
+    url: "c_a7c8f7ab3c2ec42eebab1d00670f2be57281dff6350c70cc1ccd6d6086733be4@group.calendar.google.com"
+    enabled: true
+    region: "National"
 
-  # - name: "DSA National"
-  #   type: "gcal"
-  #   url: "REPLACE_WITH_CALENDAR_ID@group.calendar.google.com"
-  #   enabled: false
-  #   region: "National"
+  # --- Kansas neighbors ----------------------------------------------------
 
-  # - name: "Kansas City DSA"
-  #   type: "ical"
-  #   url: "https://kcdsa.org/events/?ical=1"
-  #   enabled: false
-  #   region: "Missouri / Kansas"
+  - name: "Lawrence DSA"
+    type: "gcal"
+    url: "dsalawrenceks@gmail.com"
+    enabled: true
+    region: "Kansas"
 
-  # - name: "Mid-Missouri DSA"
-  #   type: "ical"
-  #   url: "https://example-chapter.org/events/?ical=1"
-  #   enabled: false
-  #   region: "Midwest"
-  #   include: ["socialist", "dsa", "labor"]
-  #   exclude: ["cancelled", "members only"]
+  - name: "Wichita DSA"
+    type: "gcal"
+    url: "socialists@ictdsa.org"
+    enabled: true
+    region: "Kansas"
+
+  # --- Verified, parked ----------------------------------------------------
+  # All of these return real calendars. Flip enabled to true to add one, but
+  # watch the Discord cap noted above.
+
+  - name: "Central Iowa DSA"          # 33 events in a 180-day window
+    type: "gcal"
+    url: "b6f2c910b116ae2abb27d65c0c397fc301e2334367c221c8f15f13fc3bd9b87f@group.calendar.google.com"
+    enabled: false
+    region: "Iowa"
+
+  - name: "Iowa City DSA"             # 18 events
+    type: "gcal"
+    url: "exec@iowacitydsa.org"
+    enabled: false
+    region: "Iowa"
+
+  - name: "Northwest Arkansas DSA"    # 127 events -- heavy, filter it
+    type: "gcal"
+    url: "nwademsoc@gmail.com"
+    enabled: false
+    region: "Arkansas"
+    # Example of trimming a busy chapter down to the events worth sharing:
+    # include: ["general meeting", "rally", "canvass", "school"]
+
+  - name: "Twin Cities DSA"           # 30 upcoming
+    type: "gcal"
+    url: "3r812u8t6nf3203lqd0i3n1i20@group.calendar.google.com"
+    enabled: false
+    region: "Minnesota"
+
+  - name: "Denver DSA"                # 10 upcoming
+    type: "gcal"
+    url: "pp80f5omkpu3pkbum1lkb2ifhs@group.calendar.google.com"
+    enabled: false
+    region: "Colorado"
+
+  - name: "Austin DSA"                # 47 upcoming
+    type: "gcal"
+    url: "austindsatech@gmail.com"
+    enabled: false
+    region: "Texas"
+
+  - name: "Houston DSA"               # 141 upcoming -- heavy
+    type: "ical"
+    url: "https://houstondsa.org/?post_type=tribe_events&ical=1&eventDisplay=list"
+    enabled: false
+    region: "Texas"
+
+  - name: "Chicago DSA"               # 170 upcoming -- heavy
+    type: "ical"
+    url: "https://ics.teamup.com/feed/ksc3uaa38o41o2vz8o/0.ics"
+    enabled: false
+    region: "Illinois"
+
+  - name: "New Orleans DSA"           # 56 upcoming
+    type: "gcal"
+    url: "vv0uj9uhqrl6j6m0pugu90uo6c@group.calendar.google.com"
+    enabled: false
+    region: "Louisiana"
+
+  - name: "Cleveland DSA"             # 62 upcoming
+    type: "gcal"
+    url: "dsacleinternal@gmail.com"
+    enabled: false
+    region: "Ohio"
+
+  # --- Do not enable as-is -------------------------------------------------
+  # Kansas City DSA: https://kcdsa.org/wp-json/r34icspro/v5/ics/9c37159db5ce114ddfce208403ae2dfd4995d529
+  #   Returns a well-formed calendar containing zero events. Worth asking KC
+  #   about directly -- they clearly mean to publish a feed.
+  # Topeka DSA: topekadsa@gmail.com
+  #   192 events, every one titled "Busy". The calendar is shared free/busy-only,
+  #   so no titles or locations come through. Ask them to share full details.
+  # Housing Justice Commission: https://housing.dsausa.org/events/?ical=1
+  #   HTTP 403. May be bot protection that behaves differently from a GitHub
+  #   runner -- if you want it, enable it and read one run's log before trusting.
+  # DSA Los Angeles, East Bay, Columbus, Milwaukee, Madison, North NJ, Metro DC,
+  # Southern NH, Tampa: all broken as of 2026-07-22. See docs/dsa-calendar-feeds.md.
