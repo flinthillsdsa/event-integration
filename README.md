@@ -180,6 +180,26 @@ shared yet" rather than "wrong ID".
 branch → `main` / root) at
 `https://flinthillsdsa.github.io/event-integration/events.json`.
 
+## What appears where
+
+The two calendars have different audiences, controlled by `events_json.sources` in
+`config.yml`:
+
+| Calendar | Google Calendar | Discord | fhdsa.org |
+|---|---|---|---|
+| Flint Hills Chapter of DSA | authored here (via Chronicle) | native events | **yes** |
+| National / Regional | written by the aggregator | channel posts | **no** |
+
+National/regional events are aggregated for Discord's benefit, not the website's, so
+`sources: ["chapter"]` keeps them out of `events.json` entirely — they are never sent to a
+visitor's browser. Add `"national"` back to that list to show them on the site again.
+
+Because of that split, the Discord side wants two separate Chronicle notifiers: one for the
+chapter calendar with *Sync Google Calendars to Discord Events* ON (native events), and one
+for the National / Regional calendar with that toggle OFF, pointed at a dedicated channel so
+it posts messages instead. Keeping regional events out of native Discord events also keeps
+them from consuming Discord's 100-upcoming-event server cap.
+
 ## The website
 
 Both snippets in `site/` are three lines: a stylesheet link, a `<div>`, and a

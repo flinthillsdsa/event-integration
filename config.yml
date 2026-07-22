@@ -28,6 +28,12 @@ aggregator:
   default_duration_minutes: 120
 
 events_json:
+  # Which calendars the website feed includes. Valid entries: "chapter",
+  # "national". National/regional events are deliberately left out: they go to
+  # Discord via Chronicle instead of onto fhdsa.org. Add "national" back here to
+  # show them on the site again.
+  sources: ["chapter"]
+
   # Forward window for the website feed.
   window_days: 60
   # Where the generated file is written, relative to the repo root. This is the
