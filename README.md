@@ -216,11 +216,23 @@ Container attributes, all optional:
 
 | Attribute | Default | Meaning |
 |---|---|---|
-| `data-mode` | `full` | `compact` = flat grid; `full` = month sections + filter chips |
+| `data-mode` | `full` | `compact` = 3-across grid; `full` = month sections + filter chips |
 | `data-limit` | all | maximum number of events to render |
 | `data-source` | `all` | `chapter` or `national` to show only one |
 | `data-src` | the Pages URL | override the `events.json` location |
-| `data-more` | — | URL for a trailing "See all events" link |
+
+**Cards never navigate away.** A card shows only the committee colour bar, the
+tag, the date and time, and the title. Clicking it opens a modal with the
+location, the full description, and an RSVP button when the event carries an
+Action Network link — that button is the only thing that leaves the page.
+
+The modal is a native `<dialog>` opened with `showModal()`, so it gets a real
+backdrop, focus trapping, and Escape-to-close from the browser. Focus moves to
+the close button on open and returns to the card that opened it on close.
+
+Compact mode is a fixed three columns, so `data-limit="6"` lands as two clean
+rows of three. It steps down to two columns under 780px and one under 480px,
+measured on the container rather than the viewport.
 
 Cards pull their palette from the Neve FSE theme's own CSS variables
 (`--wp--preset--color--ti-*`), so a theme color change carries through. Badge and

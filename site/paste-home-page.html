@@ -5,14 +5,18 @@
   (the one that renders <ul class="actionnetwork-calendar">) with a Custom HTML
   block containing everything below.
 
+  Cards show only the committee colour bar, the tag, the date and time, and the
+  title. Clicking one opens a modal with the location, full description, and the
+  Action Network RSVP button when the event has a link. Nothing navigates away
+  from the page.
+
   data-limit  how many events to show. 6 fits two rows on desktop.
-  data-more   where the "See all events" link goes.
+
+  There is deliberately no built-in "See all events" link — the page already has
+  its own button beneath this section.
 -->
 <link rel="stylesheet" href="https://flinthillsdsa.github.io/event-integration/events-embed.css">
 
-<div class="fhdsa-events"
-     data-mode="compact"
-     data-limit="6"
-     data-more="/chapter-calendar/"></div>
+<div class="fhdsa-events" data-mode="compact" data-limit="6"></div>
 
 <script src="https://flinthillsdsa.github.io/event-integration/events-embed.js" defer></script>
