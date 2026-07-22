@@ -207,6 +207,69 @@ class TestManagedGuards(unittest.TestCase):
         self.assertFalse(gcal.delete_managed(Boom(), calendar_id="c", event={"id": "x"}))
 
 
+class TestAccessPreflight(unittest.TestCase):
+    """A calendar that is not shared must fail with instructions, not a traceback."""
+
+    @staticmethod
+    def _service(status=None, access_role=None):
+        from googleapiclient.errors import HttpError
+
+        class Resp:
+            def __init__(self, code):
+                self.status = code
+                self.reason = "Not Found"
+
+        class Request:
+            def __init__(self, error=None, result=None):
+                self._error, self._result = error, result
+
+            def execute(self):
+                if self._error:
+                    raise self._error
+                return self._result
+
+        class Service:
+            def calendars(self):
+                error = HttpError(Resp(status), b"{}") if status else None
+                return type("C", (), {"get": lambda _s, **kw: Request(error, {})})()
+
+            def calendarList(self):
+                return type("L", (), {
+                    "get": lambda _s, **kw: Request(None, {"accessRole": access_role})
+                })()
+
+        return Service()
+
+    def test_404_explains_sharing(self):
+        with self.assertRaises(gcal.CalendarAccessError) as ctx:
+            gcal.check_access(self._service(status=404), calendar_id="cal@example.com",
+                              sa_email="bot@project.iam.gserviceaccount.com",
+                              label="National / Regional", need_write=True)
+        message = str(ctx.exception)
+        self.assertIn("bot@project.iam.gserviceaccount.com", message)
+        self.assertIn("Make changes to events", message)
+        self.assertIn("cal@example.com", message)
+
+    def test_403_is_treated_the_same(self):
+        with self.assertRaises(gcal.CalendarAccessError):
+            gcal.check_access(self._service(status=403), calendar_id="c", sa_email="b",
+                              label="chapter", need_write=False)
+
+    def test_read_only_grant_on_a_write_calendar_is_rejected(self):
+        with self.assertRaises(gcal.CalendarAccessError) as ctx:
+            gcal.check_access(self._service(access_role="reader"), calendar_id="c",
+                              sa_email="b", label="National / Regional", need_write=True)
+        self.assertIn("not write", str(ctx.exception))
+
+    def test_writer_access_passes(self):
+        gcal.check_access(self._service(access_role="writer"), calendar_id="c",
+                          sa_email="b", label="National / Regional", need_write=True)
+
+    def test_read_check_ignores_access_role(self):
+        gcal.check_access(self._service(access_role="reader"), calendar_id="c",
+                          sa_email="b", label="chapter", need_write=False)
+
+
 class TestEventsJsonEntries(unittest.TestCase):
     def setUp(self):
         self.config = make_config()

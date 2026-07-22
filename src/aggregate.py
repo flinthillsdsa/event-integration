@@ -128,7 +128,15 @@ def collect(config: Config, sources: list[Source], service,
 
 def run(config: Config, sources: list[Source], *, dry_run: bool = False) -> int:
     service = gcal.build_service(config.service_account_info)
-    logger.info("Service account: %s", gcal.service_account_email(config.service_account_info))
+    sa_email = gcal.service_account_email(config.service_account_info)
+    logger.info("Service account: %s", sa_email)
+
+    # Check the one calendar we write to before doing any work, so a missing
+    # share fails with an instruction rather than a traceback 30 seconds in.
+    gcal.check_access(
+        service, calendar_id=config.national_calendar_id, sa_email=sa_email,
+        label="National / Regional", need_write=True,
+    )
 
     now = dt.datetime.now(dt.timezone.utc)
     window_start = now - dt.timedelta(days=config.past_window_days)
@@ -220,7 +228,11 @@ def main(argv: list[str] | None = None) -> int:
         logger.error("%s", exc)
         return 2
 
-    return run(config, sources, dry_run=args.dry_run)
+    try:
+        return run(config, sources, dry_run=args.dry_run)
+    except gcal.CalendarAccessError as exc:
+        logger.error("%s", exc)
+        return 3
 
 
 if __name__ == "__main__":
