@@ -53,6 +53,31 @@
     return start.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   }
 
+  // Committee colours are chosen for recognition, not for contrast, and several
+  // are light enough that white badge text falls below the 4.5:1 minimum for
+  // text this size. Pick whichever of white/near-black actually reads.
+  function readableTextOn(hex) {
+    var match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec((hex || "").trim());
+    if (!match) return "#ffffff";
+    var value = match[1];
+    if (value.length === 3) {
+      value = value[0] + value[0] + value[1] + value[1] + value[2] + value[2];
+    }
+    var channels = [0, 2, 4].map(function (i) {
+      var c = parseInt(value.substr(i, 2), 16) / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    var luminance = 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+    var onWhite = 1.05 / (luminance + 0.05);
+    var onBlack = (luminance + 0.05) / 0.05;
+    return onWhite >= onBlack ? "#ffffff" : "#111111";
+  }
+
+  function applyColor(node, color) {
+    node.style.setProperty("--card-color", color || "");
+    node.style.setProperty("--badge-text", readableTextOn(color));
+  }
+
   function plainText(html) {
     return (html || "").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, " ");
   }
@@ -78,7 +103,7 @@
     var item = el("li", "fhdsa-events__item");
     var card = el("button", "fhdsa-events__card");
     card.type = "button";
-    card.style.setProperty("--card-color", event.color || "");
+    applyColor(card, event.color);
     card.setAttribute("data-committee", event.committee || "");
     card.setAttribute("data-source", event.source || "");
     card.setAttribute("aria-haspopup", "dialog");
@@ -153,7 +178,7 @@
     var node = ensureDialog();
     var body = node.querySelector(".fhdsa-events__dialog-body");
     body.textContent = "";
-    node.style.setProperty("--card-color", event.color || "");
+    applyColor(node, event.color);
 
     body.appendChild(el("span", "fhdsa-events__badge", event.committee || "General"));
     if (event.source === "national") {

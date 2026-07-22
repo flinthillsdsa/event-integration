@@ -132,7 +132,9 @@
   padding: 3px 10px;
   border-radius: 999px;
   background: var(--card-color, var(--fhdsa-accent));
-  color: #fff;
+  /* Set per-event by the script from the committee colour's luminance, so a
+     light badge gets dark text instead of failing contrast in white. */
+  color: var(--badge-text, #fff);
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -239,7 +241,7 @@
   padding: 10px 20px;
   border-radius: 999px;
   background: var(--card-color, #ec1f27);
-  color: #fff;
+  color: var(--badge-text, #fff);
   font-weight: 700;
   text-decoration: none;
 }
@@ -247,7 +249,7 @@
 .fhdsa-events__rsvp:hover,
 .fhdsa-events__rsvp:focus-visible {
   text-decoration: underline;
-  color: #fff;
+  color: var(--badge-text, #fff);
 }
 
 /* --- states --- */
