@@ -174,9 +174,17 @@ def fetch_gcal(source: Source, window_start: dt.datetime, window_end: dt.datetim
         if end is None or end <= start:
             end = start + dt.timedelta(minutes=default_duration_minutes)
 
-        uid = item.get("iCalUID") or item.get("id") or ""
+        # Prefer the per-instance event id. With singleEvents=True Google expands
+        # a recurring series but gives every occurrence the SAME iCalUID, so
+        # keying on iCalUID collapses a weekly meeting down to one event and
+        # discards the rest as duplicates. The instance id is unique and stable
+        # across runs; qualify iCalUID by start only as a fallback.
+        uid = item.get("id")
         if not uid:
-            continue
+            ical_uid = item.get("iCalUID")
+            if not ical_uid:
+                continue
+            uid = f"{ical_uid}@{start.strftime('%Y%m%dT%H%M%S')}"
 
         events.append(
             NormalizedEvent(

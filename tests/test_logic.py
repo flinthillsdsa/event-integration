@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src import google_calendar as gcal  # noqa: E402
 from src.aggregate import normalized_key, to_calendar_body  # noqa: E402
 from src.committees import extract_rsvp_url, resolve, strip_tag  # noqa: E402
-from src.config import REPO_ROOT, Committee, Config, load_config, load_sources  # noqa: E402
+from src.config import REPO_ROOT, Committee, Config, Source, load_config, load_sources  # noqa: E402
 from src.events_json import build_entry  # noqa: E402
 from src.feeds import NormalizedEvent  # noqa: E402
 
@@ -150,6 +150,77 @@ class TestDedup(unittest.TestCase):
         chicago = dt.datetime(2026, 8, 1, 18, 0, tzinfo=CHICAGO)
         utc = chicago.astimezone(dt.timezone.utc)
         self.assertEqual(normalized_key(self._event("X", chicago)), normalized_key(self._event("X", utc)))
+
+
+class TestRecurringSeriesFromTheCalendarApi(unittest.TestCase):
+    """Every occurrence of a Google recurring series shares one iCalUID.
+
+    Keying on iCalUID silently collapsed a weekly meeting to a single event and
+    discarded the rest as duplicates. Occurrences must stay distinct.
+    """
+
+    def _occurrences(self):
+        from src.feeds import fetch_gcal
+
+        shared_uid = "abc123@google.com"
+        items = [
+            {
+                "id": f"evt_{n}",                 # unique per instance
+                "iCalUID": shared_uid,            # identical across the series
+                "summary": "Lawrence DSA General Meeting",
+                "start": {"dateTime": f"2026-08-{n:02d}T18:00:00-05:00"},
+                "end": {"dateTime": f"2026-08-{n:02d}T20:00:00-05:00"},
+            }
+            for n in (1, 8, 15, 22)
+        ]
+
+        class Service:
+            pass
+
+        import src.google_calendar as gc
+        original = gc.list_events
+        gc.list_events = lambda *a, **k: items
+        try:
+            source = Source(name="Lawrence DSA", type="gcal", url="x", enabled=True,
+                            region=None, include=(), exclude=())
+            return fetch_gcal(source, dt.datetime(2026, 7, 1, tzinfo=CHICAGO),
+                              dt.datetime(2026, 12, 1, tzinfo=CHICAGO), CHICAGO, 120, Service())
+        finally:
+            gc.list_events = original
+
+    def test_all_occurrences_survive(self):
+        events = self._occurrences()
+        self.assertEqual(len(events), 4)
+        self.assertEqual(len({e.uid for e in events}), 4, "occurrences must have distinct uids")
+
+    def test_each_occurrence_gets_its_own_calendar_id(self):
+        ids = {gcal.derive_event_id(e.source, e.uid) for e in self._occurrences()}
+        self.assertEqual(len(ids), 4)
+
+    def test_dedup_key_keeps_them_apart(self):
+        keys = {normalized_key(e) for e in self._occurrences()}
+        self.assertEqual(len(keys), 4, "same title at different starts must not collide")
+
+    def test_falls_back_to_qualified_ical_uid_when_no_id(self):
+        from src.feeds import fetch_gcal
+
+        items = [
+            {"iCalUID": "shared@google.com", "summary": "Meeting",
+             "start": {"dateTime": f"2026-08-{n:02d}T18:00:00-05:00"},
+             "end": {"dateTime": f"2026-08-{n:02d}T20:00:00-05:00"}}
+            for n in (1, 8)
+        ]
+        import src.google_calendar as gc
+        original = gc.list_events
+        gc.list_events = lambda *a, **k: items
+        try:
+            source = Source(name="S", type="gcal", url="x", enabled=True,
+                            region=None, include=(), exclude=())
+            events = fetch_gcal(source, dt.datetime(2026, 7, 1, tzinfo=CHICAGO),
+                                dt.datetime(2026, 12, 1, tzinfo=CHICAGO), CHICAGO, 120, object())
+        finally:
+            gc.list_events = original
+        self.assertEqual(len({e.uid for e in events}), 2)
 
 
 class TestIdempotency(unittest.TestCase):
