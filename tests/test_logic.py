@@ -440,6 +440,43 @@ class TestShippedConfig(unittest.TestCase):
         colors = [c.color for c in config.committees]
         self.assertEqual(len(colors), len(set(colors)), "committee badge colors should be distinct")
 
+    def test_every_badge_colour_can_carry_readable_text(self):
+        """Mirrors readableTextOn() in events-embed.js.
+
+        The script picks white or near-black per badge, so a colour only needs
+        to clear 4.5:1 against ONE of them. This catches a new committee colour
+        that is unreadable either way.
+        """
+        def luminance(hex_colour: str) -> float:
+            raw = hex_colour.lstrip("#")
+            channels = []
+            for i in (0, 2, 4):
+                c = int(raw[i:i + 2], 16) / 255
+                channels.append(c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4)
+            return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+
+        config = load_config(require_credentials=False)
+        for committee in list(config.committees) + [config.default_committee,
+                                                    config.national_committee]:
+            lum = luminance(committee.color)
+            best = max(1.05 / (lum + 0.05), (lum + 0.05) / 0.05)
+            self.assertGreaterEqual(
+                best, 4.5,
+                f"{committee.name} ({committee.color}) fails 4.5:1 against both white and black",
+            )
+
+    def test_committee_tags_are_unique_across_committees(self):
+        config = load_config(require_credentials=False)
+        seen: dict[str, str] = {}
+        for committee in config.committees:
+            for tag in committee.tags:
+                key = tag.lower()
+                self.assertNotIn(
+                    key, seen,
+                    f"tag [{tag}] is claimed by both {seen.get(key)} and {committee.name}",
+                )
+                seen[key] = committee.name
+
     def test_embed_assets_exist_at_the_pages_root(self):
         for name in ("events-embed.js", "events-embed.css"):
             self.assertTrue((REPO_ROOT / name).exists(), f"{name} must sit at the repo root for Pages")

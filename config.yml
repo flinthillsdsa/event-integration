@@ -92,6 +92,11 @@ committees:
     color: "#e67c73"
     keywords: ["comrade club", "social", "happy hour", "potluck", "picnic", "game night"]
 
+  - name: "Swoletariat"
+    tags: ["Swole", "Swoletariat"]
+    color: "#00695c"
+    keywords: ["swole", "gym", "workout", "lifting", "run club", "hike", "bike ride"]
+
 # Committee assigned to events with no tag and no keyword hit.
 default_committee:
   name: "General"
