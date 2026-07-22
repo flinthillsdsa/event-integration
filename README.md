@@ -156,7 +156,8 @@ Point a card container at a local file with `data-src="/events.json"`.
 
 ## Google setup
 
-The service account (`client_email` in the key file) needs:
+The service account is `action-network-sync@strategic-crow-466420-a9.iam.gserviceaccount.com`
+(the `client_email` in the key file). It needs:
 
 | Calendar | Access |
 |---|---|
@@ -164,7 +165,12 @@ The service account (`client_email` in the key file) needs:
 | National / Regional | **Make changes to events** |
 
 Share each calendar with that address in Google Calendar → Settings → *Share with
-specific people*. Public feeds listed in `feeds.yml` need no sharing.
+specific people or groups*. Public feeds listed in `feeds.yml` need no sharing.
+
+Both jobs check this before doing any work and stop with the exact address and
+access level to grant. Note that the Calendar API answers **404, not 403**, for a
+calendar the service account cannot see, so "Not Found" almost always means "not
+shared yet" rather than "wrong ID".
 
 `events.json` is published by **GitHub Pages** (Settings → Pages → Deploy from a
 branch → `main` / root) at

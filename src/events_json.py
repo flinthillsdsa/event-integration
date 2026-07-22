@@ -64,7 +64,15 @@ def build_entry(item: dict, config: Config, *, source: str, tzinfo: ZoneInfo) ->
 
 def generate(config: Config) -> dict:
     service = gcal.build_service(config.service_account_info, readonly=True)
+    sa_email = gcal.service_account_email(config.service_account_info)
     tzinfo = ZoneInfo(config.timezone)
+
+    for label, calendar_id in (
+        ("Flint Hills Chapter of DSA", config.chapter_calendar_id),
+        ("National / Regional", config.national_calendar_id),
+    ):
+        gcal.check_access(service, calendar_id=calendar_id, sa_email=sa_email,
+                          label=label, need_write=False)
 
     now = dt.datetime.now(tzinfo)
     # "Upcoming and today" -- an event earlier today still counts as today.
@@ -76,14 +84,12 @@ def generate(config: Config) -> dict:
         ("chapter", config.chapter_calendar_id),
         ("national", config.national_calendar_id),
     ):
-        try:
-            items = gcal.list_events(
-                service, calendar_id=calendar_id, time_min=time_min, time_max=time_max
-            )
-        except Exception as exc:  # noqa: BLE001 - one calendar must not break the feed
-            logger.warning("Could not read the %s calendar (%s); continuing without it",
-                           source, type(exc).__name__)
-            continue
+        # Deliberately not caught: a half-read calendar would publish a feed
+        # missing real events, and the site would quietly show a short list.
+        # Better to fail and leave the last good events.json in place.
+        items = gcal.list_events(
+            service, calendar_id=calendar_id, time_min=time_min, time_max=time_max
+        )
 
         count = 0
         for item in items:
@@ -134,7 +140,12 @@ def main(argv: list[str] | None = None) -> int:
         logger.error("%s", exc)
         return 2
 
-    payload = generate(config)
+    try:
+        payload = generate(config)
+    except gcal.CalendarAccessError as exc:
+        logger.error("%s", exc)
+        return 3
+
     text = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
 
     if args.stdout:

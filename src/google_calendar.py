@@ -42,6 +42,10 @@ _BASE32HEX_RE = re.compile(r"^[0-9a-v]{5,1024}$")
 _PAGE_SIZE = 250
 
 
+class CalendarAccessError(RuntimeError):
+    """A calendar is missing, or is not shared with the service account."""
+
+
 def build_service(service_account_info: dict, *, readonly: bool = False):
     credentials = service_account.Credentials.from_service_account_info(
         service_account_info, scopes=READONLY_SCOPES if readonly else SCOPES
@@ -101,6 +105,48 @@ def parse_event_time(node: dict | None, tzinfo: ZoneInfo) -> tuple[dt.datetime |
         day = dt.date.fromisoformat(node["date"])
         return dt.datetime(day.year, day.month, day.day, tzinfo=tzinfo), True
     return None, False
+
+
+def check_access(service, *, calendar_id: str, sa_email: str, label: str, need_write: bool) -> None:
+    """Fail fast, and legibly, when a calendar is not reachable.
+
+    The Calendar API answers 404 (not 403) for a calendar the caller cannot see,
+    which reads as "wrong id" when the usual cause is "not shared yet". Say both.
+    """
+    access = "Make changes to events" if need_write else "See all event details"
+    try:
+        service.calendars().get(calendarId=calendar_id).execute()
+    except HttpError as exc:
+        if exc.resp.status not in (403, 404):
+            raise
+        raise CalendarAccessError(
+            f"Cannot reach the {label} calendar ({calendar_id}).\n"
+            f"  Google answered {exc.resp.status}, which means either the calendar ID is wrong "
+            f"or it has never been shared with this service account.\n"
+            f"  Fix: open that calendar in Google Calendar -> Settings -> "
+            f"'Share with specific people or groups', add\n"
+            f"      {sa_email}\n"
+            f"  with '{access}'. Sharing can take a minute to take effect."
+        ) from exc
+
+    if not need_write:
+        return
+
+    # Read access alone still answers calendars().get(), so confirm the write
+    # grant separately via the caller's access role on the calendar list entry.
+    try:
+        entry = service.calendarList().get(calendarId=calendar_id).execute()
+    except HttpError:
+        return  # Not decisive on its own; let the first real write surface it.
+    role = entry.get("accessRole", "")
+    if role not in ("writer", "owner"):
+        raise CalendarAccessError(
+            f"The service account can read the {label} calendar but not write to it "
+            f"(access role: {role or 'unknown'}).\n"
+            f"  Fix: re-share {calendar_id} with\n"
+            f"      {sa_email}\n"
+            f"  granting '{access}', not just read access."
+        )
 
 
 def list_events(service, *, calendar_id: str, time_min: dt.datetime, time_max: dt.datetime,
