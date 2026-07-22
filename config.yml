@@ -34,8 +34,11 @@ events_json:
   # show them on the site again.
   sources: ["chapter"]
 
-  # Forward window for the website feed.
-  window_days: 60
+  # Forward window for the website feed. Keep this generously ahead of the
+  # chapter's planning horizon: a recurring series that starts just past the
+  # edge is invisible on the site until the window rolls forward, which reads
+  # as a bug rather than a boundary.
+  window_days: 120
   # Where the generated file is written, relative to the repo root. This is the
   # GitHub Pages root, so it publishes to
   # https://flinthillsdsa.github.io/event-integration/events.json
