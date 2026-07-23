@@ -1,4 +1,5 @@
-"""Credential-free tests for the pure logic: tag parsing, ids, dedup, entries.
+"""Credential-free tests for the website feed logic: tag parsing, committees,
+RSVP extraction, access preflight, events.json entries, and the shipped config.
 
     python -m unittest discover -s tests
 """
@@ -14,11 +15,9 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src import google_calendar as gcal  # noqa: E402
-from src.aggregate import normalized_key, to_calendar_body  # noqa: E402
 from src.committees import extract_rsvp_url, resolve, strip_tag  # noqa: E402
-from src.config import REPO_ROOT, Committee, Config, Source, load_config, load_sources  # noqa: E402
+from src.config import REPO_ROOT, Committee, Config, load_config  # noqa: E402
 from src.events_json import build_entry  # noqa: E402
-from src.feeds import NormalizedEvent  # noqa: E402
 
 CHICAGO = ZoneInfo("America/Chicago")
 
@@ -26,22 +25,17 @@ CHICAGO = ZoneInfo("America/Chicago")
 def make_config() -> Config:
     return Config(
         chapter_calendar_id="chapter@example.com",
-        national_calendar_id="national@example.com",
         timezone="America/Chicago",
-        horizon_days=180,
-        past_window_days=1,
-        default_duration_minutes=120,
-        window_days=60,
+        window_days=120,
         output_path=Path("events.json"),
         max_description_chars=600,
-        website_sources=("chapter",),
+        default_duration_minutes=120,
         committees=[
             Committee("Housing Justice and Tenant Organizing", ("Housing", "HJTO"), "#0b8043", ("tenant", "housing")),
             Committee("Political Education", ("PolEd",), "#8e24aa", ("reading", "education")),
             Committee("Meetings", ("Meeting",), "#616161", ("general body",)),
         ],
         default_committee=Committee("General", (), "#546e7a", ()),
-        national_committee=Committee("National", (), "#ec1f27", ()),
     )
 
 
@@ -89,11 +83,6 @@ class TestCommitteeResolution(unittest.TestCase):
         self.assertEqual(resolved.committee, "Political Education")
         self.assertEqual(resolved.matched_by, "keyword")
 
-    def test_national_overrides_everything(self):
-        resolved = resolve("[Housing] National Call", self.config, national=True)
-        self.assertEqual(resolved.committee, "National")
-        self.assertEqual(resolved.title, "National Call")
-
 
 class TestRsvpExtraction(unittest.TestCase):
     def test_prefers_action_network(self):
@@ -106,184 +95,16 @@ class TestRsvpExtraction(unittest.TestCase):
             "https://actionnetwork.org/events/bar",
         )
 
-    def test_falls_back(self):
-        self.assertEqual(extract_rsvp_url("", fallback="https://calendar.google.com/x"),
-                         "https://calendar.google.com/x")
+    def test_no_link_returns_none(self):
+        self.assertIsNone(extract_rsvp_url("No link here."))
         self.assertIsNone(extract_rsvp_url(None))
-
-
-class TestEventIds(unittest.TestCase):
-    def test_deterministic_and_valid(self):
-        first = gcal.derive_event_id("NPEC", "abc-123")
-        second = gcal.derive_event_id("NPEC", "abc-123")
-        self.assertEqual(first, second)
-        self.assertTrue(gcal._BASE32HEX_RE.match(first), first)
-
-    def test_distinct_per_source(self):
-        self.assertNotEqual(gcal.derive_event_id("NPEC", "abc"), gcal.derive_event_id("KCDSA", "abc"))
-
-    def test_weird_uids_still_produce_valid_ids(self):
-        for uid in ["", "UID with spaces!", "ünïcode✨", "x" * 5000]:
-            self.assertTrue(gcal._BASE32HEX_RE.match(gcal.derive_event_id("s", uid)))
-
-
-class TestDedup(unittest.TestCase):
-    def _event(self, title, start, source="A"):
-        return NormalizedEvent(
-            uid="u", title=title, description="", location="",
-            start=start, end=start + dt.timedelta(hours=1), url=None, source=source,
-        )
-
-    def test_same_title_and_start_collide_across_sources(self):
-        start = dt.datetime(2026, 8, 1, 18, 0, tzinfo=CHICAGO)
-        a = self._event("DSA National Call", start, "A")
-        b = self._event("  dsa   national call!  ", start, "B")
-        self.assertEqual(normalized_key(a), normalized_key(b))
-
-    def test_different_start_does_not_collide(self):
-        start = dt.datetime(2026, 8, 1, 18, 0, tzinfo=CHICAGO)
-        self.assertNotEqual(
-            normalized_key(self._event("X", start)),
-            normalized_key(self._event("X", start + dt.timedelta(hours=1))),
-        )
-
-    def test_equivalent_instants_in_different_zones_collide(self):
-        chicago = dt.datetime(2026, 8, 1, 18, 0, tzinfo=CHICAGO)
-        utc = chicago.astimezone(dt.timezone.utc)
-        self.assertEqual(normalized_key(self._event("X", chicago)), normalized_key(self._event("X", utc)))
-
-
-class TestRecurringSeriesFromTheCalendarApi(unittest.TestCase):
-    """Every occurrence of a Google recurring series shares one iCalUID.
-
-    Keying on iCalUID silently collapsed a weekly meeting to a single event and
-    discarded the rest as duplicates. Occurrences must stay distinct.
-    """
-
-    def _occurrences(self):
-        from src.feeds import fetch_gcal
-
-        shared_uid = "abc123@google.com"
-        items = [
-            {
-                "id": f"evt_{n}",                 # unique per instance
-                "iCalUID": shared_uid,            # identical across the series
-                "summary": "Lawrence DSA General Meeting",
-                "start": {"dateTime": f"2026-08-{n:02d}T18:00:00-05:00"},
-                "end": {"dateTime": f"2026-08-{n:02d}T20:00:00-05:00"},
-            }
-            for n in (1, 8, 15, 22)
-        ]
-
-        class Service:
-            pass
-
-        import src.google_calendar as gc
-        original = gc.list_events
-        gc.list_events = lambda *a, **k: items
-        try:
-            source = Source(name="Lawrence DSA", type="gcal", url="x", enabled=True,
-                            region=None, include=(), exclude=())
-            return fetch_gcal(source, dt.datetime(2026, 7, 1, tzinfo=CHICAGO),
-                              dt.datetime(2026, 12, 1, tzinfo=CHICAGO), CHICAGO, 120, Service())
-        finally:
-            gc.list_events = original
-
-    def test_all_occurrences_survive(self):
-        events = self._occurrences()
-        self.assertEqual(len(events), 4)
-        self.assertEqual(len({e.uid for e in events}), 4, "occurrences must have distinct uids")
-
-    def test_each_occurrence_gets_its_own_calendar_id(self):
-        ids = {gcal.derive_event_id(e.source, e.uid) for e in self._occurrences()}
-        self.assertEqual(len(ids), 4)
-
-    def test_dedup_key_keeps_them_apart(self):
-        keys = {normalized_key(e) for e in self._occurrences()}
-        self.assertEqual(len(keys), 4, "same title at different starts must not collide")
-
-    def test_falls_back_to_qualified_ical_uid_when_no_id(self):
-        from src.feeds import fetch_gcal
-
-        items = [
-            {"iCalUID": "shared@google.com", "summary": "Meeting",
-             "start": {"dateTime": f"2026-08-{n:02d}T18:00:00-05:00"},
-             "end": {"dateTime": f"2026-08-{n:02d}T20:00:00-05:00"}}
-            for n in (1, 8)
-        ]
-        import src.google_calendar as gc
-        original = gc.list_events
-        gc.list_events = lambda *a, **k: items
-        try:
-            source = Source(name="S", type="gcal", url="x", enabled=True,
-                            region=None, include=(), exclude=())
-            events = fetch_gcal(source, dt.datetime(2026, 7, 1, tzinfo=CHICAGO),
-                                dt.datetime(2026, 12, 1, tzinfo=CHICAGO), CHICAGO, 120, object())
-        finally:
-            gc.list_events = original
-        self.assertEqual(len({e.uid for e in events}), 2)
-
-
-class TestIdempotency(unittest.TestCase):
-    def test_content_hash_is_stable_across_rebuilds(self):
-        event = NormalizedEvent(
-            uid="u", title="[PolEd] Reading", description="d", location="Library",
-            start=dt.datetime(2026, 8, 1, 18, 0, tzinfo=CHICAGO),
-            end=dt.datetime(2026, 8, 1, 20, 0, tzinfo=CHICAGO),
-            url="https://actionnetwork.org/events/x", source="NPEC", region="National",
-        )
-        first = gcal.content_hash(to_calendar_body(event, "America/Chicago"))
-        second = gcal.content_hash(to_calendar_body(event, "America/Chicago"))
-        self.assertEqual(first, second)
-
-    def test_hash_changes_when_a_written_field_changes(self):
-        base = NormalizedEvent(
-            uid="u", title="A", description="", location="",
-            start=dt.datetime(2026, 8, 1, 18, 0, tzinfo=CHICAGO),
-            end=dt.datetime(2026, 8, 1, 20, 0, tzinfo=CHICAGO),
-            url=None, source="NPEC",
-        )
-        moved = NormalizedEvent(**{**base.__dict__, "start": base.start + dt.timedelta(hours=1)})
-        self.assertNotEqual(
-            gcal.content_hash(to_calendar_body(base, "America/Chicago")),
-            gcal.content_hash(to_calendar_body(moved, "America/Chicago")),
-        )
-
-    def test_all_day_events_get_date_nodes_with_an_exclusive_end(self):
-        event = NormalizedEvent(
-            uid="u", title="A", description="", location="",
-            start=dt.datetime(2026, 8, 1, tzinfo=CHICAGO),
-            end=dt.datetime(2026, 8, 1, tzinfo=CHICAGO),
-            url=None, source="NPEC", all_day=True,
-        )
-        body = to_calendar_body(event, "America/Chicago")
-        self.assertEqual(body["start"], {"date": "2026-08-01"})
-        self.assertEqual(body["end"], {"date": "2026-08-02"})
-
-
-class TestManagedGuards(unittest.TestCase):
-    def test_unmanaged_events_are_not_recognised(self):
-        self.assertFalse(gcal._is_managed({"id": "x"}))
-        self.assertFalse(gcal._is_managed({"extendedProperties": {"private": {"managedBy": "someone-else"}}}))
-
-    def test_managed_events_are_recognised(self):
-        self.assertTrue(gcal._is_managed(
-            {"extendedProperties": {"private": {"managedBy": gcal.MANAGED_BY_VALUE}}}
-        ))
-
-    def test_delete_refuses_unmanaged(self):
-        class Boom:
-            def events(self):  # pragma: no cover - must never be reached
-                raise AssertionError("delete_managed touched the API for an unmanaged event")
-
-        self.assertFalse(gcal.delete_managed(Boom(), calendar_id="c", event={"id": "x"}))
 
 
 class TestAccessPreflight(unittest.TestCase):
     """A calendar that is not shared must fail with instructions, not a traceback."""
 
     @staticmethod
-    def _service(status=None, access_role=None):
+    def _service(status=None):
         from googleapiclient.errors import HttpError
 
         class Resp:
@@ -305,41 +126,26 @@ class TestAccessPreflight(unittest.TestCase):
                 error = HttpError(Resp(status), b"{}") if status else None
                 return type("C", (), {"get": lambda _s, **kw: Request(error, {})})()
 
-            def calendarList(self):
-                return type("L", (), {
-                    "get": lambda _s, **kw: Request(None, {"accessRole": access_role})
-                })()
-
         return Service()
 
     def test_404_explains_sharing(self):
         with self.assertRaises(gcal.CalendarAccessError) as ctx:
             gcal.check_access(self._service(status=404), calendar_id="cal@example.com",
                               sa_email="bot@project.iam.gserviceaccount.com",
-                              label="National / Regional", need_write=True)
+                              label="Flint Hills Chapter of DSA")
         message = str(ctx.exception)
         self.assertIn("bot@project.iam.gserviceaccount.com", message)
-        self.assertIn("Make changes to events", message)
+        self.assertIn("See all event details", message)
         self.assertIn("cal@example.com", message)
 
     def test_403_is_treated_the_same(self):
         with self.assertRaises(gcal.CalendarAccessError):
             gcal.check_access(self._service(status=403), calendar_id="c", sa_email="b",
-                              label="chapter", need_write=False)
+                              label="chapter")
 
-    def test_read_only_grant_on_a_write_calendar_is_rejected(self):
-        with self.assertRaises(gcal.CalendarAccessError) as ctx:
-            gcal.check_access(self._service(access_role="reader"), calendar_id="c",
-                              sa_email="b", label="National / Regional", need_write=True)
-        self.assertIn("not write", str(ctx.exception))
-
-    def test_writer_access_passes(self):
-        gcal.check_access(self._service(access_role="writer"), calendar_id="c",
-                          sa_email="b", label="National / Regional", need_write=True)
-
-    def test_read_check_ignores_access_role(self):
-        gcal.check_access(self._service(access_role="reader"), calendar_id="c",
-                          sa_email="b", label="chapter", need_write=False)
+    def test_reachable_calendar_passes(self):
+        gcal.check_access(self._service(status=None), calendar_id="c", sa_email="b",
+                          label="chapter")
 
 
 class TestEventsJsonEntries(unittest.TestCase):
@@ -350,7 +156,7 @@ class TestEventsJsonEntries(unittest.TestCase):
         entry = build_entry(
             {"id": "1", "summary": "[Meeting] General Body",
              "start": {"dateTime": "2026-08-10T18:00:00-05:00"}},
-            self.config, source="chapter", tzinfo=CHICAGO,
+            self.config, tzinfo=CHICAGO,
         )
         self.assertEqual(entry["title"], "General Body")
         self.assertEqual(entry["committee"], "Meetings")
@@ -362,20 +168,20 @@ class TestEventsJsonEntries(unittest.TestCase):
     def test_all_day_event(self):
         entry = build_entry(
             {"id": "2", "summary": "May Day", "start": {"date": "2026-05-01"}, "end": {"date": "2026-05-02"}},
-            self.config, source="chapter", tzinfo=CHICAGO,
+            self.config, tzinfo=CHICAGO,
         )
         self.assertTrue(entry["allDay"])
 
-    def test_national_source_labels_and_extracts_rsvp(self):
+    def test_rsvp_link_is_extracted_from_the_description(self):
         entry = build_entry(
             {"id": "3", "summary": "[PolEd] Cadre School",
              "description": "Sign up: https://actionnetwork.org/events/cadre",
              "start": {"dateTime": "2026-09-01T19:00:00-05:00"},
              "end": {"dateTime": "2026-09-01T21:00:00-05:00"}},
-            self.config, source="national", tzinfo=CHICAGO,
+            self.config, tzinfo=CHICAGO,
         )
-        self.assertEqual(entry["committee"], "National")
-        self.assertEqual(entry["source"], "national")
+        self.assertEqual(entry["committee"], "Political Education")
+        self.assertEqual(entry["source"], "chapter")
         self.assertEqual(entry["url"], "https://actionnetwork.org/events/cadre")
 
     def test_event_without_an_rsvp_link_gets_no_url(self):
@@ -384,124 +190,19 @@ class TestEventsJsonEntries(unittest.TestCase):
              "htmlLink": "https://www.google.com/calendar/event?eid=abc",
              "start": {"dateTime": "2026-07-23T16:00:00-05:00"},
              "end": {"dateTime": "2026-07-23T17:00:00-05:00"}},
-            self.config, source="chapter", tzinfo=CHICAGO,
+            self.config, tzinfo=CHICAGO,
         )
         self.assertIsNone(entry["url"], "must not fall back to the Google Calendar UI link")
         self.assertEqual(entry["title"], "Test Event")
 
     def test_undated_event_is_dropped(self):
-        self.assertIsNone(build_entry({"id": "4", "summary": "x"}, self.config,
-                                      source="chapter", tzinfo=CHICAGO))
-
-
-class TestWebsiteSourceSelection(unittest.TestCase):
-    """National/regional events go to Discord, not onto fhdsa.org."""
-
-    def test_shipped_config_excludes_national_from_the_website(self):
-        config = load_config(require_credentials=False)
-        self.assertEqual(config.website_sources, ("chapter",))
-
-    def test_unknown_source_is_rejected(self):
-        from src.config import ConfigError, _website_sources
-
-        with self.assertRaises(ConfigError):
-            _website_sources({"sources": ["chapter", "regional"]})
-
-    def test_empty_source_list_is_rejected(self):
-        from src.config import ConfigError, _website_sources
-
-        with self.assertRaises(ConfigError):
-            _website_sources({"sources": []})
-
-    def test_both_sources_still_allowed(self):
-        from src.config import _website_sources
-
-        self.assertEqual(_website_sources({"sources": ["chapter", "national"]}),
-                         ("chapter", "national"))
-
-
-class TestNamedFilters(unittest.TestCase):
-    """Named filter sets, resolved onto sources by name.
-
-    Built against a temporary feeds file rather than the shipped one, so the
-    behaviour stays covered no matter which chapters are enabled today.
-    """
-
-    FEEDS = """
-filters:
-  remote_or_open:
-    any_of: ["zoom.us", "online", "open to all"]
-    none_of: ["working group", "members only"]
-sources:
-  - name: "Far Away DSA"
-    type: "gcal"
-    url: "far@example.com"
-    filter: "remote_or_open"
-  - name: "Neighbour DSA"
-    type: "gcal"
-    url: "near@example.com"
-"""
-
-    def setUp(self):
-        import tempfile
-        handle = tempfile.NamedTemporaryFile("w", suffix=".yml", delete=False)
-        handle.write(self.FEEDS)
-        handle.close()
-        self.sources = {s.name: s for s in load_sources(Path(handle.name))}
-
-    def _event(self, title, description="", location=""):
-        start = dt.datetime(2026, 9, 1, 18, 0, tzinfo=CHICAGO)
-        return NormalizedEvent(
-            uid="u", title=title, description=description, location=location,
-            start=start, end=start + dt.timedelta(hours=1), url=None, source="Far Away DSA",
-        )
-
-    def test_the_named_set_is_merged_onto_the_source(self):
-        source = self.sources["Far Away DSA"]
-        self.assertIn("zoom.us", source.include)
-        self.assertIn("working group", source.exclude)
-
-    def test_a_zoom_link_in_the_location_field_counts(self):
-        # The whole point of matching location: that is where Zoom links live.
-        event = self._event("Socialist Night School", location="https://zoom.us/j/123")
-        self.assertTrue(event.matches_filters(self.sources["Far Away DSA"]))
-
-    def test_an_in_person_only_event_is_dropped(self):
-        event = self._event("Rally at City Hall", location="City Hall, Chicago")
-        self.assertFalse(event.matches_filters(self.sources["Far Away DSA"]))
-
-    def test_a_remote_internal_meeting_is_still_dropped(self):
-        event = self._event("AgitProp Working Group", location="https://zoom.us/j/9")
-        self.assertFalse(event.matches_filters(self.sources["Far Away DSA"]))
-
-    def test_a_source_without_a_filter_keeps_everything(self):
-        neighbour = self.sources["Neighbour DSA"]
-        self.assertEqual(neighbour.include, ())
-        event = self._event("Electoral Committee", location="Lawrence Public Library")
-        self.assertTrue(event.matches_filters(neighbour))
-
-    def test_unknown_filter_name_is_rejected(self):
-        import tempfile
-        from src.config import ConfigError
-
-        with tempfile.NamedTemporaryFile("w", suffix=".yml", delete=False) as fh:
-            fh.write("sources:\n  - name: X\n    type: gcal\n    url: y\n    filter: nope\n")
-            path = Path(fh.name)
-        with self.assertRaises(ConfigError):
-            load_sources(path)
+        self.assertIsNone(build_entry({"id": "4", "summary": "x"}, self.config, tzinfo=CHICAGO))
 
 
 class TestShippedConfig(unittest.TestCase):
     """The committed YAML must stay loadable and internally consistent."""
 
-    def test_feeds_yml_parses(self):
-        sources = load_sources()
-        self.assertTrue(sources, "feeds.yml should seed at least one source")
-        for source in sources:
-            self.assertIn(source.type, {"ical", "gcal"})
-
     def test_config_yml_parses_without_credentials(self):
-        # Placeholder calendar ids are expected until the real ones are filled in.
         try:
             config = load_config(require_credentials=False)
         except Exception as exc:
@@ -527,8 +228,7 @@ class TestShippedConfig(unittest.TestCase):
             return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
 
         config = load_config(require_credentials=False)
-        for committee in list(config.committees) + [config.default_committee,
-                                                    config.national_committee]:
+        for committee in list(config.committees) + [config.default_committee]:
             lum = luminance(committee.color)
             best = max(1.05 / (lum + 0.05), (lum + 0.05) / 0.05)
             self.assertGreaterEqual(

@@ -1,7 +1,8 @@
-"""Configuration loading: config.yml, config/feeds.yml, and the one secret.
+"""Configuration loading for config.yml and the one secret.
 
-The only secret this repo touches is the Google service account JSON. It is
-read from the environment and never logged, printed, or written to disk.
+The only secret this repo touches is the Google service account JSON, used
+read-only to fetch the chapter calendar. It is read from the environment and
+never logged, printed, or written to disk.
 """
 
 from __future__ import annotations
@@ -18,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = REPO_ROOT / "config.yml"
-FEEDS_PATH = REPO_ROOT / "config" / "feeds.yml"
 
 
 class ConfigError(RuntimeError):
@@ -33,35 +33,18 @@ class Committee:
     keywords: tuple[str, ...]
 
 
-@dataclass(frozen=True)
-class Source:
-    name: str
-    type: str            # "ical" | "gcal"
-    url: str
-    enabled: bool
-    region: str | None
-    include: tuple[str, ...]
-    exclude: tuple[str, ...]
-
-
 @dataclass
 class Config:
     chapter_calendar_id: str
-    national_calendar_id: str
     timezone: str
-
-    horizon_days: int
-    past_window_days: int
-    default_duration_minutes: int
 
     window_days: int
     output_path: Path
     max_description_chars: int
-    website_sources: tuple[str, ...]
+    default_duration_minutes: int
 
     committees: list[Committee]
     default_committee: Committee
-    national_committee: Committee
 
     service_account_info: dict = field(repr=False, default_factory=dict)
 
@@ -77,26 +60,6 @@ def _committee(raw: dict) -> Committee:
         color=color,
         keywords=tuple(str(k).strip().lower() for k in (raw.get("keywords") or []) if str(k).strip()),
     )
-
-
-VALID_WEBSITE_SOURCES = ("chapter", "national")
-
-
-def _website_sources(events_json_raw: dict) -> tuple[str, ...]:
-    """Which calendars the website feed draws from. Defaults to chapter only."""
-    raw = events_json_raw.get("sources", ["chapter"])
-    if isinstance(raw, str):
-        raw = [raw]
-    sources = tuple(str(s).strip().lower() for s in raw if str(s).strip())
-    unknown = [s for s in sources if s not in VALID_WEBSITE_SOURCES]
-    if unknown:
-        raise ConfigError(
-            f"events_json.sources has unknown entries {unknown}; "
-            f"valid values are {list(VALID_WEBSITE_SOURCES)}."
-        )
-    if not sources:
-        raise ConfigError("events_json.sources is empty; the website feed would always be blank.")
-    return sources
 
 
 def _load_service_account_info(required: bool) -> dict:
@@ -147,17 +110,14 @@ def load_config(config_path: Path | None = None, *, require_credentials: bool = 
 
     calendars = raw.get("calendars") or {}
     chapter = str(calendars.get("chapter") or "").strip()
-    national = str(calendars.get("national") or "").strip()
-    if not chapter or not national:
-        raise ConfigError("config.yml must set both calendars.chapter and calendars.national.")
-    for label, cal_id in (("chapter", chapter), ("national", national)):
-        if "REPLACE" in cal_id.upper():
-            raise ConfigError(
-                f"calendars.{label} is still a placeholder ({cal_id!r}). Put the real "
-                f"Google Calendar ID in config.yml."
-            )
+    if not chapter:
+        raise ConfigError("config.yml must set calendars.chapter.")
+    if "REPLACE" in chapter.upper():
+        raise ConfigError(
+            f"calendars.chapter is still a placeholder ({chapter!r}). Put the real "
+            f"Google Calendar ID in config.yml."
+        )
 
-    agg = raw.get("aggregator") or {}
     ejs = raw.get("events_json") or {}
 
     committees = [_committee(c) for c in (raw.get("committees") or [])]
@@ -166,79 +126,12 @@ def load_config(config_path: Path | None = None, *, require_credentials: bool = 
 
     return Config(
         chapter_calendar_id=chapter,
-        national_calendar_id=national,
         timezone=str(raw.get("timezone") or "America/Chicago"),
-        horizon_days=int(agg.get("horizon_days", 180)),
-        past_window_days=int(agg.get("past_window_days", 1)),
-        default_duration_minutes=int(agg.get("default_duration_minutes", 120)),
         window_days=int(ejs.get("window_days", 60)),
         output_path=REPO_ROOT / str(ejs.get("output_path", "events.json")),
         max_description_chars=int(ejs.get("max_description_chars", 600)),
-        website_sources=_website_sources(ejs),
+        default_duration_minutes=int(ejs.get("default_duration_minutes", 120)),
         committees=committees,
         default_committee=_committee(raw.get("default_committee") or {"name": "General", "color": "#546e7a"}),
-        national_committee=_committee(raw.get("national_committee") or {"name": "National", "color": "#ec1f27"}),
         service_account_info=_load_service_account_info(require_credentials),
     )
-
-
-def load_sources(feeds_path: Path | None = None) -> list[Source]:
-    path = feeds_path or FEEDS_PATH
-    if not path.exists():
-        raise ConfigError(f"feeds config not found at {path}")
-
-    raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-
-    # Named, reusable filter sets so a rule like "remote or nationally open"
-    # is written once instead of copied onto every distant chapter.
-    filter_sets: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {}
-    for name, spec in (raw.get("filters") or {}).items():
-        spec = spec or {}
-        filter_sets[str(name)] = (
-            tuple(str(k).strip().lower() for k in (spec.get("any_of") or []) if str(k).strip()),
-            tuple(str(k).strip().lower() for k in (spec.get("none_of") or []) if str(k).strip()),
-        )
-
-    sources: list[Source] = []
-    seen: set[str] = set()
-
-    for entry in raw.get("sources") or []:
-        name = str(entry.get("name") or "").strip()
-        url = str(entry.get("url") or "").strip()
-        stype = str(entry.get("type") or "").strip().lower()
-        if not name or not url:
-            raise ConfigError(f"feeds.yml source is missing 'name' or 'url': {entry!r}")
-        if stype not in {"ical", "gcal"}:
-            raise ConfigError(f"feeds.yml source {name!r} has type {stype!r}; expected 'ical' or 'gcal'.")
-        if name.lower() in seen:
-            raise ConfigError(f"feeds.yml has two sources named {name!r}; names must be unique.")
-        seen.add(name.lower())
-
-        include = tuple(str(k).strip().lower() for k in (entry.get("include") or []) if str(k).strip())
-        exclude = tuple(str(k).strip().lower() for k in (entry.get("exclude") or []) if str(k).strip())
-
-        # A named filter merges into whatever the source declares inline.
-        filter_name = entry.get("filter")
-        if filter_name:
-            if str(filter_name) not in filter_sets:
-                raise ConfigError(
-                    f"source {name!r} references filter {filter_name!r}, which is not "
-                    f"defined under 'filters:'. Known filters: {sorted(filter_sets)}"
-                )
-            any_of, none_of = filter_sets[str(filter_name)]
-            include += any_of
-            exclude += none_of
-
-        sources.append(
-            Source(
-                name=name,
-                type=stype,
-                url=url,
-                enabled=bool(entry.get("enabled", True)),
-                region=(str(entry["region"]).strip() if entry.get("region") else None),
-                include=include,
-                exclude=exclude,
-            )
-        )
-
-    return sources

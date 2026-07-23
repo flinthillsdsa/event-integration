@@ -6,39 +6,21 @@
 
 calendars:
   # The single chapter calendar. Organizers create events in Discord; the
-  # Chronicle bot mirrors them here. Read-only for this repo.
+  # Chronicle bot mirrors them here. This repo reads it, never writes.
   chapter: "flinthillsdsa@gmail.com"
 
-  # The aggregator's output calendar. Humans never edit this one. The service
-  # account needs "Make changes to events" on it.
-  national: "bfc7529532e79727b8fdfaf1e086d7d67241ef281274334a604f93673d663f8b@group.calendar.google.com"
-
 # Timezone the chapter authors events in. Used for all-day handling and for
-# any event a feed hands us without zone information.
+# any event that arrives without zone information.
 timezone: "America/Chicago"
 
-aggregator:
-  # How far forward to pull events from national/regional feeds, and the window
-  # in which the aggregator is allowed to reconcile (i.e. delete stale events it
-  # previously created). Events outside this window are never touched.
-  horizon_days: 180
-  # Ignore anything that started more than this many days ago.
-  past_window_days: 1
-  # Used when a source event has no end time.
-  default_duration_minutes: 120
-
 events_json:
-  # Which calendars the website feed includes. Valid entries: "chapter",
-  # "national". National/regional events are deliberately left out: they go to
-  # Discord via Chronicle instead of onto fhdsa.org. Add "national" back here to
-  # show them on the site again.
-  sources: ["chapter"]
-
   # Forward window for the website feed. Keep this generously ahead of the
   # chapter's planning horizon: a recurring series that starts just past the
   # edge is invisible on the site until the window rolls forward, which reads
   # as a bug rather than a boundary.
   window_days: 120
+  # Used when an event has no end time (Discord-authored events can lack one).
+  default_duration_minutes: 120
   # Where the generated file is written, relative to the repo root. This is the
   # GitHub Pages root, so it publishes to
   # https://flinthillsdsa.github.io/event-integration/events.json
@@ -101,9 +83,3 @@ committees:
 default_committee:
   name: "General"
   color: "#546e7a"
-
-# Committee label applied to everything on the National / Regional calendar.
-# These events are additionally marked with source = "national".
-national_committee:
-  name: "National"
-  color: "#ec1f27"

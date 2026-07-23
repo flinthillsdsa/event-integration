@@ -35,7 +35,7 @@ class Resolved:
     title: str          # display title, bracket tag stripped
     committee: str
     color: str
-    matched_by: str     # "tag" | "keyword" | "default" | "national"
+    matched_by: str     # "tag" | "keyword" | "default"
 
 
 def strip_tag(title: str) -> tuple[str, str | None]:
@@ -56,13 +56,9 @@ def strip_tag(title: str) -> tuple[str, str | None]:
     return remainder, match.group(1).strip()
 
 
-def resolve(title: str, config: Config, *, national: bool = False) -> Resolved:
+def resolve(title: str, config: Config) -> Resolved:
     """Resolve a raw event title to a display title plus committee + color."""
     clean, tag = strip_tag(title)
-
-    if national:
-        nat = config.national_committee
-        return Resolved(title=clean, committee=nat.name, color=nat.color, matched_by="national")
 
     if tag:
         needle = tag.lower()
@@ -81,8 +77,6 @@ def resolve(title: str, config: Config, *, national: bool = False) -> Resolved:
 
 def committee_color(name: str, config: Config) -> str:
     """Badge color for a committee name, for callers that already have a name."""
-    if name == config.national_committee.name:
-        return config.national_committee.color
     for committee in config.committees:
         if committee.name == name:
             return committee.color
