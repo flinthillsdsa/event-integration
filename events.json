@@ -8,11 +8,28 @@
       "color": "#616161"
     },
     {
+      "name": "Outreach",
+      "color": "#f09300"
+    },
+    {
       "name": "Social",
       "color": "#e67c73"
     }
   ],
   "events": [
+    {
+      "id": "40fa5gugajbrpjus3bgp95queg_20260724T003000Z",
+      "title": "Midwest Plains District Call",
+      "start": "2026-07-23T19:30:00-05:00",
+      "end": "2026-07-23T20:30:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Steering Committee to get a registration link for the Zoom.",
+      "description": "This is a monthly regional call with Tom of the Midwest Plans District.",
+      "url": null,
+      "committee": "Meetings",
+      "color": "#616161",
+      "source": "chapter"
+    },
     {
       "id": "5c3nfgc5ncmus72or5mdepsfg4_20260727T230000Z",
       "title": "Monthly Steering Committee Meeting",
@@ -24,6 +41,32 @@
       "url": null,
       "committee": "Meetings",
       "color": "#616161",
+      "source": "chapter"
+    },
+    {
+      "id": "n0vut5defp812q2vkoprfneb3g",
+      "title": "Everybody Counts",
+      "start": "2026-08-01T08:30:00-05:00",
+      "end": "2026-08-01T12:30:00-05:00",
+      "allDay": false,
+      "location": "900 Block of Yuma Street",
+      "description": "We have the opportunity to table next Saturday, August 1, 2026 from 9am to 12pm at the Everybody Counts event. They are also looking for volunteers to help with setup and then clean up. More information on that to follow.<br><br>Please use <a href=\"https://actionnetwork.org/events/everybody-counts?source=direct_link&amp;\">Action Network</a> to RSVP to volunteer to help setup, cleanup, and/or table with us!<br>",
+      "url": "https://actionnetwork.org/events/everybody-counts?source=direct_link&amp;\">Action",
+      "committee": "Outreach",
+      "color": "#f09300",
+      "source": "chapter"
+    },
+    {
+      "id": "4jsinqmtddbhj5g2bndptt4ipu",
+      "title": "Comrade Club",
+      "start": "2026-08-03T18:00:00-05:00",
+      "end": "2026-08-03T20:00:00-05:00",
+      "allDay": false,
+      "location": "629 Poyntz Ave, Manhattan, KS 66502 US",
+      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
+      "url": null,
+      "committee": "Social",
+      "color": "#e67c73",
       "source": "chapter"
     },
     {
@@ -40,6 +83,19 @@
       "source": "chapter"
     },
     {
+      "id": "4evaav6vj7qmsk4i21n7gme4i6",
+      "title": "Comrade Club",
+      "start": "2026-08-17T18:00:00-05:00",
+      "end": "2026-08-17T20:00:00-05:00",
+      "allDay": false,
+      "location": "629 Poyntz Ave, Manhattan, KS 66502 US",
+      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
+      "url": null,
+      "committee": "Social",
+      "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
       "id": "5c3nfgc5ncmus72or5mdepsfg4_20260824T230000Z",
       "title": "Monthly Steering Committee Meeting",
       "start": "2026-08-24T18:00:00-05:00",
@@ -47,6 +103,19 @@
       "allDay": false,
       "location": "Reach out to Steering Commiteee",
       "description": "This is the monthly meeting for the Flint Hills DSA Steering Committee. It is open to all members of the Flint Hills Chapter of DSA. For location details, contact the Steering Committee (chapter@fhdsa.org).\n\nIf you need any accommodations to fully participate, please reach out to events@fhdsa.org and let us know so we can make proper arrangements. All Flint Hills DSA events are fragrance- and nut-free.",
+      "url": null,
+      "committee": "Meetings",
+      "color": "#616161",
+      "source": "chapter"
+    },
+    {
+      "id": "40fa5gugajbrpjus3bgp95queg_20260828T003000Z",
+      "title": "Midwest Plains District Call",
+      "start": "2026-08-27T19:30:00-05:00",
+      "end": "2026-08-27T20:30:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Steering Committee to get a registration link for the Zoom.",
+      "description": "This is a monthly regional call with Tom of the Midwest Plans District.",
       "url": null,
       "committee": "Meetings",
       "color": "#616161",
@@ -89,6 +158,19 @@
       "url": null,
       "committee": "Social",
       "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
+      "id": "40fa5gugajbrpjus3bgp95queg_20260925T003000Z",
+      "title": "Midwest Plains District Call",
+      "start": "2026-09-24T19:30:00-05:00",
+      "end": "2026-09-24T20:30:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Steering Committee to get a registration link for the Zoom.",
+      "description": "This is a monthly regional call with Tom of the Midwest Plans District.",
+      "url": null,
+      "committee": "Meetings",
+      "color": "#616161",
       "source": "chapter"
     },
     {
@@ -141,6 +223,19 @@
       "url": null,
       "committee": "Social",
       "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
+      "id": "40fa5gugajbrpjus3bgp95queg_20261023T003000Z",
+      "title": "Midwest Plains District Call",
+      "start": "2026-10-22T19:30:00-05:00",
+      "end": "2026-10-22T20:30:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Steering Committee to get a registration link for the Zoom.",
+      "description": "This is a monthly regional call with Tom of the Midwest Plans District.",
+      "url": null,
+      "committee": "Meetings",
+      "color": "#616161",
       "source": "chapter"
     },
     {
