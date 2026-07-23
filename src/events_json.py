@@ -1,10 +1,10 @@
-"""Component 2: generate events.json for the website.
+"""Generate events.json for the website.
 
     python -m src.events_json [--stdout]
 
-Reads the chapter calendar and the National / Regional calendar and writes a
-flat, sorted, forward-looking feed that the WordPress page fetches as a static
-file. No Google credential ever reaches the browser.
+Reads the chapter calendar and writes a flat, sorted, forward-looking feed that
+the WordPress page fetches as a static file. No Google credential ever reaches
+the browser.
 
 The payload deliberately carries no generation timestamp: the workflow commits
 this file only when it changes, and a timestamp would make every run a change.
@@ -33,7 +33,8 @@ def _truncate(text: str, limit: int) -> str:
     return text[: limit - 1].rstrip() + "…"
 
 
-def build_entry(item: dict, config: Config, *, source: str, tzinfo: ZoneInfo) -> dict | None:
+def build_entry(item: dict, config: Config, *, source: str = "chapter",
+                tzinfo: ZoneInfo) -> dict | None:
     start, all_day = gcal.parse_event_time(item.get("start"), tzinfo)
     if start is None:
         return None
@@ -44,7 +45,7 @@ def build_entry(item: dict, config: Config, *, source: str, tzinfo: ZoneInfo) ->
         end = start + dt.timedelta(minutes=config.default_duration_minutes)
 
     raw_title = (item.get("summary") or "").strip() or "(untitled)"
-    resolved = resolve(raw_title, config, national=(source == "national"))
+    resolved = resolve(raw_title, config)
     description = (item.get("description") or "").strip()
 
     return {
@@ -70,51 +71,39 @@ def generate(config: Config) -> dict:
     sa_email = gcal.service_account_email(config.service_account_info)
     tzinfo = ZoneInfo(config.timezone)
 
-    calendars = [
-        ("chapter", "Flint Hills Chapter of DSA", config.chapter_calendar_id),
-        ("national", "National / Regional", config.national_calendar_id),
-    ]
-    calendars = [c for c in calendars if c[0] in config.website_sources]
-
-    for _, label, calendar_id in calendars:
-        gcal.check_access(service, calendar_id=calendar_id, sa_email=sa_email,
-                          label=label, need_write=False)
+    gcal.check_access(service, calendar_id=config.chapter_calendar_id, sa_email=sa_email,
+                      label="Flint Hills Chapter of DSA", need_write=False)
 
     now = dt.datetime.now(tzinfo)
     # "Upcoming and today" -- an event earlier today still counts as today.
     time_min = now.replace(hour=0, minute=0, second=0, microsecond=0)
     time_max = now + dt.timedelta(days=config.window_days)
 
-    entries: list[dict] = []
-    for source, _, calendar_id in calendars:
-        # Deliberately not caught: a half-read calendar would publish a feed
-        # missing real events, and the site would quietly show a short list.
-        # Better to fail and leave the last good events.json in place.
-        items = gcal.list_events(
-            service, calendar_id=calendar_id, time_min=time_min, time_max=time_max
-        )
+    # Deliberately not caught: a half-read calendar would publish a feed missing
+    # real events, and the site would quietly show a short list. Better to fail
+    # and leave the last good events.json in place.
+    items = gcal.list_events(
+        service, calendar_id=config.chapter_calendar_id, time_min=time_min, time_max=time_max
+    )
 
-        count = 0
-        for item in items:
-            if item.get("status") == "cancelled":
-                continue
-            entry = build_entry(item, config, source=source, tzinfo=tzinfo)
-            if entry is None:
-                continue
+    entries: list[dict] = []
+    for item in items:
+        if item.get("status") == "cancelled":
+            continue
+        entry = build_entry(item, config, tzinfo=tzinfo)
+        if entry is not None:
             entries.append(entry)
-            count += 1
-        logger.info("%s calendar: %d event(s)", source, count)
+    logger.info("chapter calendar: %d event(s)", len(entries))
 
     entries.sort(key=lambda e: (e["start"], e["title"].lower()))
 
     # Only committees actually present, in config order, so the site's filter
     # chips never offer an empty category.
     present = {e["committee"] for e in entries}
-    ordered = [c for c in config.committees if c.name in present]
-    committees = [{"name": c.name, "color": c.color} for c in ordered]
-    for extra in (config.national_committee, config.default_committee):
-        if extra.name in present and not any(c["name"] == extra.name for c in committees):
-            committees.append({"name": extra.name, "color": extra.color})
+    committees = [{"name": c.name, "color": c.color} for c in config.committees if c.name in present]
+    if config.default_committee.name in present and \
+            not any(c["name"] == config.default_committee.name for c in committees):
+        committees.append({"name": config.default_committee.name, "color": config.default_committee.color})
 
     return {
         "version": 1,

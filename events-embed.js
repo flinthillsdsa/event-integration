@@ -12,7 +12,6 @@
  *   data-mode   "compact" (flat grid, no headings) | "full" (month sections
  *               plus committee filter chips). Default "full".
  *   data-limit  max events to render. Default: all.
- *   data-source "all" | "chapter" | "national". Default "all".
  *   data-src    override the events.json URL.
  *
  * Cards never navigate away. Clicking one opens a modal holding the full
@@ -105,13 +104,9 @@
     card.type = "button";
     applyColor(card, event.color);
     card.setAttribute("data-committee", event.committee || "");
-    card.setAttribute("data-source", event.source || "");
     card.setAttribute("aria-haspopup", "dialog");
 
     card.appendChild(el("span", "fhdsa-events__badge", event.committee || "General"));
-    if (event.source === "national") {
-      card.appendChild(el("span", "fhdsa-events__flag", "National / Regional"));
-    }
     card.appendChild(el("p", "fhdsa-events__date", formatDate(event)));
     card.appendChild(el("h3", "fhdsa-events__title", event.title));
 
@@ -181,9 +176,6 @@
     applyColor(node, event.color);
 
     body.appendChild(el("span", "fhdsa-events__badge", event.committee || "General"));
-    if (event.source === "national") {
-      body.appendChild(el("span", "fhdsa-events__flag", "National / Regional"));
-    }
 
     var heading = el("h2", "fhdsa-events__dialog-title", event.title);
     heading.id = "fhdsa-events-dialog-title";
@@ -298,12 +290,9 @@
   function mount(root, data) {
     var mode = root.getAttribute("data-mode") === "compact" ? "compact" : "full";
     var limit = parseInt(root.getAttribute("data-limit"), 10);
-    var sourceFilter = root.getAttribute("data-source") || "all";
     var state = { committee: null };
 
-    var all = (data.events || []).filter(function (event) {
-      return sourceFilter === "all" || event.source === sourceFilter;
-    });
+    var all = data.events || [];
 
     function visible() {
       var events = all;
