@@ -49,7 +49,7 @@ committees:
     color: "#0b8043"
     keywords: ["tenant", "housing", "renter", "eviction", "landlord"]
 
-  - name: "Meetings"
+  - name: "Meeting"
     tags: ["Meeting", "Meetings"]
     color: "#616161"
     keywords: ["general body", "steering committee", "chapter meeting", "convention"]
