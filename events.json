@@ -14,6 +14,10 @@
     {
       "name": "Social",
       "color": "#e67c73"
+    },
+    {
+      "name": "General",
+      "color": "#546e7a"
     }
   ],
   "events": [
@@ -28,6 +32,19 @@
       "url": null,
       "committee": "Meeting",
       "color": "#616161",
+      "source": "chapter"
+    },
+    {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20260730T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-07-29T19:00:00-05:00",
+      "end": "2026-07-29T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
       "source": "chapter"
     },
     {
@@ -57,6 +74,19 @@
       "source": "chapter"
     },
     {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20260806T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-08-05T19:00:00-05:00",
+      "end": "2026-08-05T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
+      "source": "chapter"
+    },
+    {
       "id": "30p1b6uthbd4hm7b4tml1tr5rb_20260810T230000Z",
       "title": "Chapter General Body Meeting",
       "start": "2026-08-10T18:00:00-05:00",
@@ -67,6 +97,19 @@
       "url": "https://fhdsa.org/about/governance/chapter-bylaws/",
       "committee": "Meeting",
       "color": "#616161",
+      "source": "chapter"
+    },
+    {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20260813T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-08-12T19:00:00-05:00",
+      "end": "2026-08-12T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
       "source": "chapter"
     },
     {
@@ -83,6 +126,19 @@
       "source": "chapter"
     },
     {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20260820T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-08-19T19:00:00-05:00",
+      "end": "2026-08-19T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.<br>",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
+      "source": "chapter"
+    },
+    {
       "id": "5c3nfgc5ncmus72or5mdepsfg4_20260824T230000Z",
       "title": "Monthly Steering Committee Meeting",
       "start": "2026-08-24T18:00:00-05:00",
@@ -93,6 +149,19 @@
       "url": null,
       "committee": "Meeting",
       "color": "#616161",
+      "source": "chapter"
+    },
+    {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20260827T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-08-26T19:00:00-05:00",
+      "end": "2026-08-26T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.<br>",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
       "source": "chapter"
     },
     {
@@ -122,6 +191,32 @@
       "source": "chapter"
     },
     {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20260903T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-09-02T19:00:00-05:00",
+      "end": "2026-09-02T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.<br>",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
+      "source": "chapter"
+    },
+    {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20260910T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-09-09T19:00:00-05:00",
+      "end": "2026-09-09T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.<br>",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
+      "source": "chapter"
+    },
+    {
       "id": "30p1b6uthbd4hm7b4tml1tr5rb_20260914T230000Z",
       "title": "Chapter General Body Meeting",
       "start": "2026-09-14T18:00:00-05:00",
@@ -135,6 +230,19 @@
       "source": "chapter"
     },
     {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20260917T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-09-16T19:00:00-05:00",
+      "end": "2026-09-16T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.<br>",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
+      "source": "chapter"
+    },
+    {
       "id": "3b0fioan1nd389svsg01ci0flu_20260921T230000Z",
       "title": "Comrade Club",
       "start": "2026-09-21T18:00:00-05:00",
@@ -145,6 +253,19 @@
       "url": null,
       "committee": "Social",
       "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20260924T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-09-23T19:00:00-05:00",
+      "end": "2026-09-23T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
       "source": "chapter"
     },
     {
@@ -174,6 +295,19 @@
       "source": "chapter"
     },
     {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20261001T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-09-30T19:00:00-05:00",
+      "end": "2026-09-30T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
+      "source": "chapter"
+    },
+    {
       "id": "3b0fioan1nd389svsg01ci0flu_20261005T230000Z",
       "title": "Comrade Club",
       "start": "2026-10-05T18:00:00-05:00",
@@ -184,6 +318,19 @@
       "url": null,
       "committee": "Social",
       "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20261008T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-10-07T19:00:00-05:00",
+      "end": "2026-10-07T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
       "source": "chapter"
     },
     {
@@ -200,6 +347,19 @@
       "source": "chapter"
     },
     {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20261015T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-10-14T19:00:00-05:00",
+      "end": "2026-10-14T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
+      "source": "chapter"
+    },
+    {
       "id": "3b0fioan1nd389svsg01ci0flu_20261019T230000Z",
       "title": "Comrade Club",
       "start": "2026-10-19T18:00:00-05:00",
@@ -210,6 +370,19 @@
       "url": null,
       "committee": "Social",
       "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20261022T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-10-21T19:00:00-05:00",
+      "end": "2026-10-21T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
       "source": "chapter"
     },
     {
@@ -239,6 +412,19 @@
       "source": "chapter"
     },
     {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20261029T000000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-10-28T19:00:00-05:00",
+      "end": "2026-10-28T20:00:00-05:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
+      "source": "chapter"
+    },
+    {
       "id": "3b0fioan1nd389svsg01ci0flu_20261103T000000Z",
       "title": "Comrade Club",
       "start": "2026-11-02T18:00:00-06:00",
@@ -249,6 +435,19 @@
       "url": null,
       "committee": "Social",
       "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20261105T010000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-11-04T19:00:00-06:00",
+      "end": "2026-11-04T20:00:00-06:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
       "source": "chapter"
     },
     {
@@ -265,6 +464,19 @@
       "source": "chapter"
     },
     {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20261112T010000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-11-11T19:00:00-06:00",
+      "end": "2026-11-11T20:00:00-06:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
+      "source": "chapter"
+    },
+    {
       "id": "3b0fioan1nd389svsg01ci0flu_20261117T000000Z",
       "title": "Comrade Club",
       "start": "2026-11-16T18:00:00-06:00",
@@ -275,6 +487,19 @@
       "url": null,
       "committee": "Social",
       "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20261119T010000Z",
+      "title": "Comrades Run Together",
+      "start": "2026-11-18T19:00:00-06:00",
+      "end": "2026-11-18T20:00:00-06:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
       "source": "chapter"
     }
   ]
