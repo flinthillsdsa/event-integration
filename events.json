@@ -501,6 +501,19 @@
       "committee": "Swoletariat",
       "color": "#00695c",
       "source": "chapter"
+    },
+    {
+      "id": "5c3nfgc5ncmus72or5mdepsfg4_20261124T000000Z",
+      "title": "Monthly Steering Committee Meeting",
+      "start": "2026-11-23T18:00:00-06:00",
+      "end": "2026-11-23T20:00:00-06:00",
+      "allDay": false,
+      "location": "Reach out to Steering Commiteee",
+      "description": "This is the monthly meeting for the Flint Hills DSA Steering Committee. It is open to all members of the Flint Hills Chapter of DSA. For location details, contact the Steering Committee (chapter@fhdsa.org).\n\nIf you need any accommodations to fully participate, please reach out to events@fhdsa.org and let us know so we can make proper arrangements. All Flint Hills DSA events are fragrance- and nut-free.",
+      "url": null,
+      "committee": "Meeting",
+      "color": "#616161",
+      "source": "chapter"
     }
   ]
 }
