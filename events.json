@@ -26,19 +26,6 @@
   ],
   "events": [
     {
-      "id": "5c3nfgc5ncmus72or5mdepsfg4_20260727T230000Z",
-      "title": "Monthly Steering Committee Meeting",
-      "start": "2026-07-27T18:00:00-05:00",
-      "end": "2026-07-27T20:00:00-05:00",
-      "allDay": false,
-      "location": "Reach out to Steering Commiteee",
-      "description": "This is the monthly meeting for the Flint Hills DSA Steering Committee. It is open to all members of the Flint Hills Chapter of DSA. For location details, contact the Steering Committee (chapter@fhdsa.org).\n\nIf you need any accommodations to fully participate, please reach out to events@fhdsa.org and let us know so we can make proper arrangements. All Flint Hills DSA events are fragrance- and nut-free.",
-      "url": null,
-      "committee": "Meeting",
-      "color": "#616161",
-      "source": "chapter"
-    },
-    {
       "id": "3fvq1b4umbs33nai21gvc998mq_20260730T000000Z",
       "title": "Comrades Run Together",
       "start": "2026-07-29T19:00:00-05:00",
