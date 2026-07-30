@@ -557,6 +557,19 @@
       "committee": "Swoletariat",
       "color": "#00695c",
       "source": "chapter"
+    },
+    {
+      "id": "40fa5gugajbrpjus3bgp95queg_20261127T013000Z",
+      "title": "Midwest Plains District Call",
+      "start": "2026-11-26T19:30:00-06:00",
+      "end": "2026-11-26T20:30:00-06:00",
+      "allDay": false,
+      "location": "Reach out to the Steering Committee to get a registration link for the Zoom.",
+      "description": "This is a monthly regional call with Tom of the Midwest Plans District.",
+      "url": null,
+      "committee": "Meeting",
+      "color": "#616161",
+      "source": "chapter"
     }
   ]
 }
