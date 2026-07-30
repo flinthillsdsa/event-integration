@@ -26,19 +26,6 @@
   ],
   "events": [
     {
-      "id": "3fvq1b4umbs33nai21gvc998mq_20260730T000000Z",
-      "title": "Socialist Run Club",
-      "start": "2026-07-29T19:00:00-05:00",
-      "end": "2026-07-29T20:00:00-05:00",
-      "allDay": false,
-      "location": "Reach out to the Swoletariat Committee for location details.",
-      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
-      "url": null,
-      "committee": "Swoletariat",
-      "color": "#00695c",
-      "source": "chapter"
-    },
-    {
       "id": "n0vut5defp812q2vkoprfneb3g",
       "title": "Everybody Counts",
       "start": "2026-08-01T08:30:00-05:00",
