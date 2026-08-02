@@ -12,10 +12,6 @@
       "color": "#616161"
     },
     {
-      "name": "Outreach",
-      "color": "#f09300"
-    },
-    {
       "name": "Political Education",
       "color": "#8e24aa"
     },
@@ -29,19 +25,6 @@
     }
   ],
   "events": [
-    {
-      "id": "n0vut5defp812q2vkoprfneb3g",
-      "title": "Everybody Counts",
-      "start": "2026-08-01T08:30:00-05:00",
-      "end": "2026-08-01T12:30:00-05:00",
-      "allDay": false,
-      "location": "900 Block of Yuma Street",
-      "description": "We have the opportunity to table next Saturday, August 1, 2026 from 9am to 12pm at the Everybody Counts event. They are also looking for volunteers to help with setup and then clean up. More information on that to follow.<br><br>Please use <a href=\"https://actionnetwork.org/events/everybody-counts?source=direct_link&amp;\">Action Network</a> to RSVP to volunteer to help setup, cleanup, and/or table with us!<br>",
-      "url": "https://actionnetwork.org/events/everybody-counts?source=direct_link&amp;\">Action",
-      "committee": "Outreach",
-      "color": "#f09300",
-      "source": "chapter"
-    },
     {
       "id": "4jsinqmtddbhj5g2bndptt4ipu",
       "title": "Comrade Club",
