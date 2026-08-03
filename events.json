@@ -583,6 +583,19 @@
       "committee": "Political Education",
       "color": "#8e24aa",
       "source": "chapter"
+    },
+    {
+      "id": "3b0fioan1nd389svsg01ci0flu_20261201T000000Z",
+      "title": "Comrade Club",
+      "start": "2026-11-30T18:00:00-06:00",
+      "end": "2026-11-30T20:00:00-06:00",
+      "allDay": false,
+      "location": "629 Poyntz Ave, Manhattan, KS 66502",
+      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
+      "url": null,
+      "committee": "Social",
+      "color": "#e67c73",
+      "source": "chapter"
     }
   ]
 }
