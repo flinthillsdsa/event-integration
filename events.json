@@ -583,6 +583,19 @@
       "committee": "Social",
       "color": "#e67c73",
       "source": "chapter"
+    },
+    {
+      "id": "3fvq1b4umbs33nai21gvc998mq_20261203T010000Z",
+      "title": "Socialist Run Club",
+      "start": "2026-12-02T19:00:00-06:00",
+      "end": "2026-12-02T20:00:00-06:00",
+      "allDay": false,
+      "location": "Reach out to the Swoletariat Committee for location details.",
+      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
+      "url": null,
+      "committee": "Swoletariat",
+      "color": "#00695c",
+      "source": "chapter"
     }
   ]
 }
