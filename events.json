@@ -26,32 +26,6 @@
   ],
   "events": [
     {
-      "id": "4evaav6vj7qmsk4i21n7gme4i6",
-      "title": "Comrade Club",
-      "start": "2026-08-17T18:00:00-05:00",
-      "end": "2026-08-17T20:00:00-05:00",
-      "allDay": false,
-      "location": "629 Poyntz Ave, Manhattan, KS 66502 US",
-      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
-      "url": null,
-      "committee": "Social",
-      "color": "#e67c73",
-      "source": "chapter"
-    },
-    {
-      "id": "3fvq1b4umbs33nai21gvc998mq_20260820T000000Z",
-      "title": "Socialist Run Club",
-      "start": "2026-08-17T19:00:00-05:00",
-      "end": "2026-08-17T20:00:00-05:00",
-      "allDay": false,
-      "location": "Reach out to the Swoletariat Committee for location details.",
-      "description": "This is a weekly run club that meets at 7pm to run or walk together.<br>",
-      "url": null,
-      "committee": "Swoletariat",
-      "color": "#00695c",
-      "source": "chapter"
-    },
-    {
       "id": "4044b46ob0jfs9glcp5lekqm7a",
       "title": "Electoral Discussion and Pot Luck with Salina DSA",
       "start": "2026-08-22T18:00:00-05:00",
