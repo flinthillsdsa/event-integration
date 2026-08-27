@@ -26,19 +26,6 @@
   ],
   "events": [
     {
-      "id": "3fvq1b4umbs33nai21gvc998mq_20260827T000000Z",
-      "title": "Socialist Run Club",
-      "start": "2026-08-26T19:00:00-05:00",
-      "end": "2026-08-26T20:00:00-05:00",
-      "allDay": false,
-      "location": "Reach out to the Swoletariat Committee for location details.",
-      "description": "This is a weekly run club that meets at 7pm to run or walk together.<br>",
-      "url": null,
-      "committee": "Swoletariat",
-      "color": "#00695c",
-      "source": "chapter"
-    },
-    {
       "id": "40fa5gugajbrpjus3bgp95queg_20260828T003000Z",
       "title": "Midwest Plains District Call",
       "start": "2026-08-27T19:30:00-05:00",
@@ -569,6 +556,19 @@
       "url": null,
       "committee": "Swoletariat",
       "color": "#00695c",
+      "source": "chapter"
+    },
+    {
+      "id": "40fa5gugajbrpjus3bgp95queg_20261225T013000Z",
+      "title": "Midwest Plains District Call",
+      "start": "2026-12-24T19:30:00-06:00",
+      "end": "2026-12-24T20:30:00-06:00",
+      "allDay": false,
+      "location": "Reach out to the Steering Committee to get a registration link for the Zoom.",
+      "description": "This is a monthly regional call with Tom of the Midwest Plans District.",
+      "url": null,
+      "committee": "Meeting",
+      "color": "#616161",
       "source": "chapter"
     }
   ]
