@@ -26,19 +26,6 @@
   ],
   "events": [
     {
-      "id": "40fa5gugajbrpjus3bgp95queg_20260828T003000Z",
-      "title": "Midwest Plains District Call",
-      "start": "2026-08-27T19:30:00-05:00",
-      "end": "2026-08-27T20:30:00-05:00",
-      "allDay": false,
-      "location": "Reach out to the Steering Committee to get a registration link for the Zoom.",
-      "description": "This is a monthly regional call with Tom of the Midwest Plans District.",
-      "url": null,
-      "committee": "Meeting",
-      "color": "#616161",
-      "source": "chapter"
-    },
-    {
       "id": "3kp6dtq22bo70bek8ut4gohafn_20260830T220000Z",
       "title": "Book Club",
       "start": "2026-08-30T17:00:00-05:00",
