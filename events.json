@@ -557,6 +557,19 @@
       "committee": "Meeting",
       "color": "#616161",
       "source": "chapter"
+    },
+    {
+      "id": "3kp6dtq22bo70bek8ut4gohafn_20261227T230000Z",
+      "title": "Book Club",
+      "start": "2026-12-27T17:00:00-06:00",
+      "end": "2026-12-27T19:00:00-06:00",
+      "allDay": false,
+      "location": "TBA - Check the Political Education Book Club Channel on our Discord Server",
+      "description": "You can sign up for the book club by giving yourself the Political Education Committee role and going to the Fable link int he Book Club channel.",
+      "url": null,
+      "committee": "Political Education",
+      "color": "#8e24aa",
+      "source": "chapter"
     }
   ]
 }
