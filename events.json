@@ -12,6 +12,10 @@
       "color": "#616161"
     },
     {
+      "name": "Outreach",
+      "color": "#f09300"
+    },
+    {
       "name": "Political Education",
       "color": "#8e24aa"
     },
@@ -22,6 +26,10 @@
     {
       "name": "Swoletariat",
       "color": "#00695c"
+    },
+    {
+      "name": "General",
+      "color": "#546e7a"
     }
   ],
   "events": [
@@ -49,6 +57,19 @@
       "url": null,
       "committee": "Swoletariat",
       "color": "#00695c",
+      "source": "chapter"
+    },
+    {
+      "id": "7ca4hmbh9ev6jluh5vcnfpm44d",
+      "title": "Yuma Street Cultural Festival",
+      "start": "2026-09-06T14:00:00-05:00",
+      "end": "2026-09-06T20:00:00-05:00",
+      "allDay": false,
+      "location": "Yuma Street Historic District and Douglass Center Complex",
+      "description": "",
+      "url": null,
+      "committee": "Outreach",
+      "color": "#f09300",
       "source": "chapter"
     },
     {
@@ -127,6 +148,19 @@
       "url": null,
       "committee": "Meeting",
       "color": "#616161",
+      "source": "chapter"
+    },
+    {
+      "id": "2u0t48n97m8r1pscg0irfnj9sc",
+      "title": "Salina-Flint Hills Collaboration Meeting",
+      "start": "2026-09-25T18:00:00-05:00",
+      "end": "2026-09-25T20:00:00-05:00",
+      "allDay": false,
+      "location": "Zoom",
+      "description": "Get to know the Salina DSA Chapter and see how we can work together for a better future!<br>",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
       "source": "chapter"
     },
     {
