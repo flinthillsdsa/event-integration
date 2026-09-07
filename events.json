@@ -12,10 +12,6 @@
       "color": "#616161"
     },
     {
-      "name": "Outreach",
-      "color": "#f09300"
-    },
-    {
       "name": "Political Education",
       "color": "#8e24aa"
     },
@@ -33,19 +29,6 @@
     }
   ],
   "events": [
-    {
-      "id": "7ca4hmbh9ev6jluh5vcnfpm44d",
-      "title": "Yuma Street Cultural Festival",
-      "start": "2026-09-06T14:00:00-05:00",
-      "end": "2026-09-06T20:00:00-05:00",
-      "allDay": false,
-      "location": "Yuma Street Historic District and Douglass Center Complex",
-      "description": "",
-      "url": null,
-      "committee": "Outreach",
-      "color": "#f09300",
-      "source": "chapter"
-    },
     {
       "id": "3fvq1b4umbs33nai21gvc998mq_20260910T000000Z",
       "title": "Socialist Run Club",
