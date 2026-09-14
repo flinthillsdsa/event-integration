@@ -587,6 +587,19 @@
       "committee": "Swoletariat",
       "color": "#00695c",
       "source": "chapter"
+    },
+    {
+      "id": "30p1b6uthbd4hm7b4tml1tr5rb_20270112T000000Z",
+      "title": "Chapter General Body Meeting",
+      "start": "2027-01-11T18:00:00-06:00",
+      "end": "2027-01-11T20:00:00-06:00",
+      "allDay": false,
+      "location": "TBA",
+      "description": "General Body Meetings of the Flint Hills, Kansas Chapter of Democratic Socialists of America are open to anyone who is willing to uphold the <a href=\"https://fhdsa.org/about/governance/chapter-bylaws/\" target=\"_blank\"><u>Chapter Bylaws</u></a>. Only Members-in-good-standing are able to vote on official business, but we welcome input from everyone in attendance.<br><br>Please navigate to the folder with the date of the meeting to view the <a href=\"https://drive.google.com/drive/folders/1Sntm6qf-8whY05QwnxlwBkrU1yW8lyhN?usp=sharing\" target=\"_blank\" class=\"pastedDriveLink-0\"><u>meeting agenda</u…",
+      "url": "https://fhdsa.org/about/governance/chapter-bylaws/",
+      "committee": "Meeting",
+      "color": "#616161",
+      "source": "chapter"
     }
   ]
 }
