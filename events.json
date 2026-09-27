@@ -26,19 +26,6 @@
   ],
   "events": [
     {
-      "id": "3kp6dtq22bo70bek8ut4gohafn_20260927T220000Z",
-      "title": "Book Club",
-      "start": "2026-09-27T17:00:00-05:00",
-      "end": "2026-09-27T19:00:00-05:00",
-      "allDay": false,
-      "location": "TBA - Check the Political Education Book Club Channel on our Discord Server",
-      "description": "You can sign up for the book club by giving yourself the Political Education Committee role and going to the Fable link int he Book Club channel.",
-      "url": null,
-      "committee": "Political Education",
-      "color": "#8e24aa",
-      "source": "chapter"
-    },
-    {
       "id": "5c3nfgc5ncmus72or5mdepsfg4_20260928T230000Z",
       "title": "Monthly Steering Committee Meeting",
       "start": "2026-09-28T18:00:00-05:00",
@@ -543,6 +530,19 @@
       "url": null,
       "committee": "Swoletariat",
       "color": "#00695c",
+      "source": "chapter"
+    },
+    {
+      "id": "5c3nfgc5ncmus72or5mdepsfg4_20270126T000000Z",
+      "title": "Monthly Steering Committee Meeting",
+      "start": "2027-01-25T18:00:00-06:00",
+      "end": "2027-01-25T20:00:00-06:00",
+      "allDay": false,
+      "location": "Reach out to Steering Commiteee",
+      "description": "This is the monthly meeting for the Flint Hills DSA Steering Committee. It is open to all members of the Flint Hills Chapter of DSA. For location details, contact the Steering Committee (chapter@fhdsa.org).\n\nIf you need any accommodations to fully participate, please reach out to events@fhdsa.org and let us know so we can make proper arrangements. All Flint Hills DSA events are fragrance- and nut-free.",
+      "url": null,
+      "committee": "Meeting",
+      "color": "#616161",
       "source": "chapter"
     }
   ]
