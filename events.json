@@ -4,10 +4,6 @@
   "windowDays": 120,
   "committees": [
     {
-      "name": "CIVIC",
-      "color": "#2952a3"
-    },
-    {
       "name": "Meeting",
       "color": "#616161"
     },
@@ -25,32 +21,6 @@
     }
   ],
   "events": [
-    {
-      "id": "3avrh7oc22rbabbm1m00oc7pmf",
-      "title": "Common Table Volunteer Opportunity",
-      "start": "2026-09-30T17:00:00-05:00",
-      "end": "2026-09-30T19:00:00-05:00",
-      "allDay": false,
-      "location": "",
-      "description": "Sign-up ASAP on the <a href=\"https://www.signupgenius.com/go/70A0549AFAB2CA7F94-62961263-common#/\" target=\"_blank\">Common Table Sign-up Genius</a>. Go to September 30, 2026 and choose a position and enter your information.",
-      "url": "https://www.signupgenius.com/go/70A0549AFAB2CA7F94-62961263-common#/",
-      "committee": "CIVIC",
-      "color": "#2952a3",
-      "source": "chapter"
-    },
-    {
-      "id": "3fvq1b4umbs33nai21gvc998mq_20261001T000000Z",
-      "title": "Socialist Run Club",
-      "start": "2026-09-30T19:00:00-05:00",
-      "end": "2026-09-30T20:00:00-05:00",
-      "allDay": false,
-      "location": "Reach out to the Swoletariat Committee for location details.",
-      "description": "This is a weekly run club that meets at 7pm to run or walk together.",
-      "url": null,
-      "committee": "Swoletariat",
-      "color": "#00695c",
-      "source": "chapter"
-    },
     {
       "id": "3b0fioan1nd389svsg01ci0flu_20261005T230000Z",
       "title": "Comrade Club",
@@ -543,6 +513,19 @@
       "url": null,
       "committee": "Swoletariat",
       "color": "#00695c",
+      "source": "chapter"
+    },
+    {
+      "id": "40fa5gugajbrpjus3bgp95queg_20270129T013000Z",
+      "title": "Midwest Plains District Call",
+      "start": "2027-01-28T19:30:00-06:00",
+      "end": "2027-01-28T20:30:00-06:00",
+      "allDay": false,
+      "location": "Reach out to the Steering Committee to get a registration link for the Zoom.",
+      "description": "This is a monthly regional call with Tom of the Midwest Plans District.",
+      "url": null,
+      "committee": "Meeting",
+      "color": "#616161",
       "source": "chapter"
     }
   ]
