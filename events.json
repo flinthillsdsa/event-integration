@@ -4,6 +4,10 @@
   "windowDays": 120,
   "committees": [
     {
+      "name": "Housing Justice and Tenant Organizing",
+      "color": "#0b8043"
+    },
+    {
       "name": "Meeting",
       "color": "#616161"
     },
@@ -136,6 +140,19 @@
       "url": null,
       "committee": "Social",
       "color": "#e67c73",
+      "source": "chapter"
+    },
+    {
+      "id": "h474o514tsic1matrumj4a5lkg",
+      "title": "Flint Hills Tenants United General Meeting",
+      "start": "2026-11-16T18:00:00-06:00",
+      "end": "2026-11-16T19:00:00-06:00",
+      "allDay": false,
+      "location": "MHK Public Library in the Collaboration Space Room",
+      "description": "For those interested in housing and tenant organizing<br>",
+      "url": null,
+      "committee": "Housing Justice and Tenant Organizing",
+      "color": "#0b8043",
       "source": "chapter"
     },
     {
