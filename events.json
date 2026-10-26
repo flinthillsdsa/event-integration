@@ -26,19 +26,6 @@
   ],
   "events": [
     {
-      "id": "3kp6dtq22bo70bek8ut4gohafn_20261025T220000Z",
-      "title": "Book Club",
-      "start": "2026-10-25T17:00:00-05:00",
-      "end": "2026-10-25T19:00:00-05:00",
-      "allDay": false,
-      "location": "TBA - Check the Political Education Book Club Channel on our Discord Server",
-      "description": "You can sign up for the book club by giving yourself the Political Education Committee role and going to the Fable link int he Book Club channel.",
-      "url": null,
-      "committee": "Political Education",
-      "color": "#8e24aa",
-      "source": "chapter"
-    },
-    {
       "id": "5c3nfgc5ncmus72or5mdepsfg4_20261026T230000Z",
       "title": "Monthly Steering Committee Meeting",
       "start": "2026-10-26T18:00:00-05:00",
