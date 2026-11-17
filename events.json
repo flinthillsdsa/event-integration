@@ -4,10 +4,6 @@
   "windowDays": 120,
   "committees": [
     {
-      "name": "Housing Justice and Tenant Organizing",
-      "color": "#0b8043"
-    },
-    {
       "name": "Meeting",
       "color": "#616161"
     },
@@ -16,41 +12,11 @@
       "color": "#8e24aa"
     },
     {
-      "name": "Social",
-      "color": "#e67c73"
-    },
-    {
       "name": "Swoletariat",
       "color": "#00695c"
     }
   ],
   "events": [
-    {
-      "id": "3b0fioan1nd389svsg01ci0flu_20261117T000000Z",
-      "title": "Comrade Club",
-      "start": "2026-11-16T18:00:00-06:00",
-      "end": "2026-11-16T20:00:00-06:00",
-      "allDay": false,
-      "location": "629 Poyntz Ave, Manhattan, KS 66502",
-      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
-      "url": null,
-      "committee": "Social",
-      "color": "#e67c73",
-      "source": "chapter"
-    },
-    {
-      "id": "h474o514tsic1matrumj4a5lkg",
-      "title": "Flint Hills Tenants United General Meeting",
-      "start": "2026-11-16T18:00:00-06:00",
-      "end": "2026-11-16T19:00:00-06:00",
-      "allDay": false,
-      "location": "MHK Public Library in the Collaboration Space Room",
-      "description": "For those interested in housing and tenant organizing<br>",
-      "url": null,
-      "committee": "Housing Justice and Tenant Organizing",
-      "color": "#0b8043",
-      "source": "chapter"
-    },
     {
       "id": "3fvq1b4umbs33nai21gvc998mq_20261119T010000Z",
       "title": "Socialist Run Club",
@@ -104,32 +70,6 @@
       "source": "chapter"
     },
     {
-      "id": "3kp6dtq22bo70bek8ut4gohafn_20261129T230000Z",
-      "title": "Book Club",
-      "start": "2026-11-29T17:00:00-06:00",
-      "end": "2026-11-29T19:00:00-06:00",
-      "allDay": false,
-      "location": "TBA - Check the Political Education Book Club Channel on our Discord Server",
-      "description": "You can sign up for the book club by giving yourself the Political Education Committee role and going to the Fable link int he Book Club channel.",
-      "url": null,
-      "committee": "Political Education",
-      "color": "#8e24aa",
-      "source": "chapter"
-    },
-    {
-      "id": "3b0fioan1nd389svsg01ci0flu_20261201T000000Z",
-      "title": "Comrade Club",
-      "start": "2026-11-30T18:00:00-06:00",
-      "end": "2026-11-30T20:00:00-06:00",
-      "allDay": false,
-      "location": "629 Poyntz Ave, Manhattan, KS 66502",
-      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
-      "url": null,
-      "committee": "Social",
-      "color": "#e67c73",
-      "source": "chapter"
-    },
-    {
       "id": "3fvq1b4umbs33nai21gvc998mq_20261203T010000Z",
       "title": "Socialist Run Club",
       "start": "2026-12-02T19:00:00-06:00",
@@ -140,6 +80,19 @@
       "url": null,
       "committee": "Swoletariat",
       "color": "#00695c",
+      "source": "chapter"
+    },
+    {
+      "id": "7fr7oi00dv7mm9hi8sdlmaq4bf_20261208T000000Z",
+      "title": "Political Education",
+      "start": "2026-12-07T18:00:00-06:00",
+      "end": "2026-12-07T20:00:00-06:00",
+      "allDay": false,
+      "location": "Manhattan Public Library, 629 Poyntz Ave, Manhattan, KS 66502, USA",
+      "description": "Usually takes place in the collaboration space.",
+      "url": null,
+      "committee": "Political Education",
+      "color": "#8e24aa",
       "source": "chapter"
     },
     {
@@ -166,19 +119,6 @@
       "url": "https://fhdsa.org/about/governance/chapter-bylaws/",
       "committee": "Meeting",
       "color": "#616161",
-      "source": "chapter"
-    },
-    {
-      "id": "3b0fioan1nd389svsg01ci0flu_20261215T000000Z",
-      "title": "Comrade Club",
-      "start": "2026-12-14T18:00:00-06:00",
-      "end": "2026-12-14T20:00:00-06:00",
-      "allDay": false,
-      "location": "629 Poyntz Ave, Manhattan, KS 66502",
-      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
-      "url": null,
-      "committee": "Social",
-      "color": "#e67c73",
       "source": "chapter"
     },
     {
@@ -221,32 +161,6 @@
       "source": "chapter"
     },
     {
-      "id": "3kp6dtq22bo70bek8ut4gohafn_20261227T230000Z",
-      "title": "Book Club",
-      "start": "2026-12-27T17:00:00-06:00",
-      "end": "2026-12-27T19:00:00-06:00",
-      "allDay": false,
-      "location": "TBA - Check the Political Education Book Club Channel on our Discord Server",
-      "description": "You can sign up for the book club by giving yourself the Political Education Committee role and going to the Fable link int he Book Club channel.",
-      "url": null,
-      "committee": "Political Education",
-      "color": "#8e24aa",
-      "source": "chapter"
-    },
-    {
-      "id": "3b0fioan1nd389svsg01ci0flu_20261229T000000Z",
-      "title": "Comrade Club",
-      "start": "2026-12-28T18:00:00-06:00",
-      "end": "2026-12-28T20:00:00-06:00",
-      "allDay": false,
-      "location": "629 Poyntz Ave, Manhattan, KS 66502",
-      "description": "<p>Looking for a low-stakes, come-and-go-as-you-please hangout?  Want to play a game, start a discussion, or just shoot the shit?</p><p>Come and meet members of the Flint Hills DSA! Join us the first and third Mondays of each month at the Manhattan Public Library, 6-8 PM, in the Collaboration Room on the ground floor. Bring your board games, your reading, your to-do list, or just yourself. Study, work, play, talk, or quietly exist near other comrades. Free, open to all, and there will be snacks!<br><br>The Manhattan Public Library is an accessible space. If you need any accommodations to full…",
-      "url": null,
-      "committee": "Social",
-      "color": "#e67c73",
-      "source": "chapter"
-    },
-    {
       "id": "5c3nfgc5ncmus72or5mdepsfg4_20261229T000000Z",
       "title": "Monthly Steering Committee Meeting",
       "start": "2026-12-28T18:00:00-06:00",
@@ -270,6 +184,19 @@
       "url": null,
       "committee": "Swoletariat",
       "color": "#00695c",
+      "source": "chapter"
+    },
+    {
+      "id": "7fr7oi00dv7mm9hi8sdlmaq4bf_20270105T000000Z",
+      "title": "Political Education",
+      "start": "2027-01-04T18:00:00-06:00",
+      "end": "2027-01-04T20:00:00-06:00",
+      "allDay": false,
+      "location": "Manhattan Public Library, 629 Poyntz Ave, Manhattan, KS 66502, USA",
+      "description": "Usually takes place in the collaboration space.",
+      "url": null,
+      "committee": "Political Education",
+      "color": "#8e24aa",
       "source": "chapter"
     },
     {
@@ -364,13 +291,13 @@
       "source": "chapter"
     },
     {
-      "id": "3kp6dtq22bo70bek8ut4gohafn_20270131T230000Z",
-      "title": "Book Club",
-      "start": "2027-01-31T17:00:00-06:00",
-      "end": "2027-01-31T19:00:00-06:00",
+      "id": "7fr7oi00dv7mm9hi8sdlmaq4bf_20270202T000000Z",
+      "title": "Political Education",
+      "start": "2027-02-01T18:00:00-06:00",
+      "end": "2027-02-01T20:00:00-06:00",
       "allDay": false,
-      "location": "TBA - Check the Political Education Book Club Channel on our Discord Server",
-      "description": "You can sign up for the book club by giving yourself the Political Education Committee role and going to the Fable link int he Book Club channel.",
+      "location": "Manhattan Public Library, 629 Poyntz Ave, Manhattan, KS 66502, USA",
+      "description": "Usually takes place in the collaboration space.",
       "url": null,
       "committee": "Political Education",
       "color": "#8e24aa",
@@ -468,13 +395,13 @@
       "source": "chapter"
     },
     {
-      "id": "3kp6dtq22bo70bek8ut4gohafn_20270228T230000Z",
-      "title": "Book Club",
-      "start": "2027-02-28T17:00:00-06:00",
-      "end": "2027-02-28T19:00:00-06:00",
+      "id": "7fr7oi00dv7mm9hi8sdlmaq4bf_20270302T000000Z",
+      "title": "Political Education",
+      "start": "2027-03-01T18:00:00-06:00",
+      "end": "2027-03-01T20:00:00-06:00",
       "allDay": false,
-      "location": "TBA - Check the Political Education Book Club Channel on our Discord Server",
-      "description": "You can sign up for the book club by giving yourself the Political Education Committee role and going to the Fable link int he Book Club channel.",
+      "location": "Manhattan Public Library, 629 Poyntz Ave, Manhattan, KS 66502, USA",
+      "description": "Usually takes place in the collaboration space.",
       "url": null,
       "committee": "Political Education",
       "color": "#8e24aa",
