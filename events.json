@@ -14,6 +14,10 @@
     {
       "name": "Swoletariat",
       "color": "#00695c"
+    },
+    {
+      "name": "General",
+      "color": "#546e7a"
     }
   ],
   "events": [
@@ -249,6 +253,19 @@
       "url": null,
       "committee": "Meeting",
       "color": "#616161",
+      "source": "chapter"
+    },
+    {
+      "id": "glrk22un3ironh6tjs9jub4e08",
+      "title": "Pott County Dems January Meeting",
+      "start": "2027-01-26T19:00:00-06:00",
+      "end": "2027-01-26T20:30:00-06:00",
+      "allDay": false,
+      "location": "700 Lincoln Ave, Wamego, KS",
+      "description": "Pott County Dems have invited folks to their meeting, go if you want<br>",
+      "url": null,
+      "committee": "General",
+      "color": "#546e7a",
       "source": "chapter"
     },
     {
